@@ -1,0 +1,6 @@
+{
+  "logger": {
+    "level": "warn",
+    "format": "json"
+  }
+}

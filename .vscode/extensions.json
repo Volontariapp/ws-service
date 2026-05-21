@@ -1,0 +1,11 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "ms-vscode.vscode-typescript-next",
+    "firsttris.vscode-jest-runner",
+    "EditorConfig.EditorConfig",
+    "ZixuanChen.vitest-explorer"
+  ],
+  "unwantedRecommendations": []
+}

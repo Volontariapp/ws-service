@@ -1,0 +1,15 @@
+{
+  "db": {
+    "host": "localhost",
+    "port": 5434,
+    "username": "user",
+    "password": "password",
+    "database": "ms_event",
+    "maxPoolSize": 10,
+    "ssl": false
+  },
+  "logger": {
+    "level": "debug",
+    "format": "text"
+  }
+}

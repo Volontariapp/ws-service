@@ -1,0 +1,24 @@
+{
+  "db": {
+    "host": "localhost",
+    "port": 5434,
+    "username": "user",
+    "password": "password",
+    "database": "ms_event",
+    "maxPoolSize": 10,
+    "ssl": false
+  },
+  "logger": {
+    "level": "info",
+    "format": "text"
+  },
+  "auth": {
+    "internalPublicKeyPath": "certs/internal.pub"
+  },
+  "microServices": {
+    "msUserUrl": "localhost:5001",
+    "msPostUrl": "localhost:5002",
+    "msEventUrl": "localhost:5003"
+  },
+  "port": 3005
+}
