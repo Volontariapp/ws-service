@@ -1,10 +1,10 @@
-# 🗓️ Volontariapp - Event Microservice (`ms-event`)
+# 🗓️ Volontariapp - WebSocket Service (`ws-service`)
 
 [![NestJS](https://img.shields.io/badge/framework-NestJS-red.svg)](https://nestjs.com/)
 [![TypeScript](https://img.shields.io/badge/language-TypeScript-blue.svg)](https://www.typescriptlang.org/)
-[![GitNexus](https://img.shields.io/badge/intelligence-GitNexus-orange.svg)](https://gitnexus.vercel.app/)
+[![Socket.io](https://img.shields.io/badge/websocket-Socket.io-black.svg)](https://socket.io/)
 
-The **Event Microservice** manages everything related to volunteering opportunities, schedules, and event organization.
+The **WebSocket Service** handles real-time bidirectional communication and Pub/Sub broadcasting for the Volontariapp platform.
 
 ---
 
@@ -51,12 +51,24 @@ yarn run test:int
 ---
 
 ## 🏗️ Architecture
-- **Event Services**: Handle the creation and management of events.
-- **Participation logic**: Manages user enrollments.
-- **Sequelize Models**: Persistent storage for events and participants.
+- **Socket.io Gateways**: Handle real-time client connections and messaging.
+- **Redis Adapter**: Synchronizes messages across horizontally scaled WebSocket nodes.
+- **Pub/Sub**: Enables cross-service broadcasting.
 
 ---
 
 ## 📜 License
 This project is [MIT licensed](LICENSE).
 .
+
+# Le Redis Adapter : Scalabilité Horizontale
+
+Pour supporter des milliers d'utilisateurs, nous déployons plusieurs instances du WS-Service. Le **Redis Adapter** est le composant qui unifie ces instances.
+
+### Pourquoi est-ce indispensable ?
+
+Si l'utilisateur A est sur le Pod 1 et l'utilisateur B sur le Pod 2, ils ne peuvent pas communiquer nativement. Le Redis Adapter utilise le mécanisme **Pub/Sub** de Redis :
+
+- Chaque instance écoute un canal Redis.
+- Lorsqu'on demande d'émettre un message vers une "Room", l'ordre est publié dans Redis.
+- Toutes les instances reçoivent l'ordre et l'envoient aux clients connectés localement sur leur Pod.

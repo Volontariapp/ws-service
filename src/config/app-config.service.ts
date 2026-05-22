@@ -6,4 +6,8 @@ export class AppConfigService {
   get port() {
     return this.config.port;
   }
+
+  get redis() {
+    return this.config.redis;
+  }
 }

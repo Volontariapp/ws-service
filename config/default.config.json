@@ -20,5 +20,11 @@
     "msPostUrl": "localhost:5002",
     "msEventUrl": "localhost:5003"
   },
+  "redis": {
+    "host": "localhost",
+    "port": 6380,
+    "password": "password",
+    "db": 0
+  },
   "port": 3005
 }

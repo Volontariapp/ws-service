@@ -8,6 +8,7 @@ import { AppConfigService } from './config/app-config.service.js';
 import { loadConfig } from '@volontariapp/config';
 import { CustomConfig } from './config/custom-config.js';
 import { Logger } from '@volontariapp/logger';
+import { RedisIoAdapter } from './adapters/redis-io.adapter.js';
 
 function resolveConfigDirectory(): string {
   const currentFileDir = dirname(fileURLToPath(import.meta.url));
@@ -32,6 +33,11 @@ async function bootstrap() {
   });
 
   const configService = app.get(AppConfigService);
+
+  // Enable WebSockets with Redis Adapter
+  const redisIoAdapter = new RedisIoAdapter(app);
+  await redisIoAdapter.connectToRedis(configService.redis);
+  app.useWebSocketAdapter(redisIoAdapter);
 
   await app.listen(configService.port);
   logger.info(`WebSocket service is listening on port ${String(configService.port)}`);
