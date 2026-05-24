@@ -34,7 +34,6 @@ async function bootstrap() {
 
   const configService = app.get(AppConfigService);
 
-  // Enable WebSockets with Redis Adapter
   const redisIoAdapter = new RedisIoAdapter(app);
   await redisIoAdapter.connectToRedis(configService.redis);
   app.useWebSocketAdapter(redisIoAdapter);
