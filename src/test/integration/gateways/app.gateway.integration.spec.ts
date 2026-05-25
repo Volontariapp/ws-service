@@ -9,7 +9,7 @@ import { createJwtServiceMock } from '../../helpers/mocks/jwt.service.mock.js';
 import { createSocketMock } from '../../helpers/factories/socket.factory.js';
 import { createJwtPayloadMock } from '../../helpers/factories/jwt-payload.factory.js';
 import { createMock } from '@volontariapp/testing';
-import type { Server, BroadcastOperator } from 'socket.io';
+import type { Server, BroadcastOperator, DefaultEventsMap } from 'socket.io';
 
 describe('AppGateway (Integration)', () => {
   let gateway: AppGateway;
@@ -36,7 +36,8 @@ describe('AppGateway (Integration)', () => {
 
     gateway = module.get<AppGateway>(AppGateway);
     const serverMock = createMock<Server>();
-    const broadcastOperatorMock = createMock<BroadcastOperator<any, any>>();
+    const broadcastOperatorMock =
+      createMock<BroadcastOperator<DefaultEventsMap, Record<string, string>>>();
     broadcastOperatorMock.fetchSockets.mockResolvedValue([]);
     serverMock.in.mockReturnValue(broadcastOperatorMock);
     serverMock.fetchSockets.mockResolvedValue([]);
