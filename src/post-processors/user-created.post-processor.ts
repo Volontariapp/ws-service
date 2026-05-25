@@ -37,7 +37,7 @@ export class UserCreatedPostProcessor extends SinglePostProcessor<WebsocketEvent
     const payload = event.payload.after;
 
     await this.socketManager.trackUser(payload.id);
-    this.notificationService.notifyUser(
+    await this.notificationService.notifyUser(
       payload.id,
       WebsocketEventMessagingType.WS_USER_CREATED,
       payload,

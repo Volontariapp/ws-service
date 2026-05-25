@@ -12,7 +12,13 @@ export const createSocketMock = (
   Object.defineProperty(mock, 'handshake', {
     value: {
       headers: token !== null ? { 'x-internal-token': token } : {},
+      query: {},
     },
+    writable: true,
+  });
+
+  Object.defineProperty(mock, 'data', {
+    value: {},
     writable: true,
   });
 

@@ -37,6 +37,11 @@ export class CustomConfig extends BaseConfig {
 
   @IsDefined()
   @ValidateNested()
+  @Type(() => RedisConfig)
+  globalRedis!: RedisConfig;
+
+  @IsDefined()
+  @ValidateNested()
   @Type(() => PostProcessorConfig)
   postProcessor!: PostProcessorConfig;
 

@@ -38,6 +38,8 @@ async function bootstrap() {
   await redisIoAdapter.connectToRedis(configService.redis);
   app.useWebSocketAdapter(redisIoAdapter);
 
+  app.enableShutdownHooks();
+
   await app.listen(configService.port);
   logger.info(`WebSocket service is listening on port ${String(configService.port)}`);
 }

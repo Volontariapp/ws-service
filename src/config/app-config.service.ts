@@ -10,4 +10,8 @@ export class AppConfigService {
   get redis() {
     return this.config.redis;
   }
+
+  get globalRedis() {
+    return this.config.globalRedis;
+  }
 }

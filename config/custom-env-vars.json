@@ -25,5 +25,26 @@
     "msEventUrl": "MS_EVENT_URL",
     "msSocialUrl": "MS_SOCIAL_URL"
   },
+  "redis": {
+    "host": "REDIS_HOST",
+    "port": "REDIS_PORT",
+    "password": "REDIS_PASSWORD",
+    "db": "REDIS_DB"
+  },
+  "globalRedis": {
+    "host": "GLOBAL_REDIS_HOST",
+    "port": "GLOBAL_REDIS_PORT",
+    "password": "GLOBAL_REDIS_PASSWORD",
+    "db": "GLOBAL_REDIS_DB"
+  },
+  "postProcessor": {
+    "groupName": "POST_PROCESSOR_GROUP_NAME",
+    "streamName": "POST_PROCESSOR_STREAM_NAME",
+    "batchSize": "POST_PROCESSOR_BATCH_SIZE",
+    "blockTimeout": "POST_PROCESSOR_BLOCK_TIMEOUT",
+    "idempotencyTtlSeconds": "POST_PROCESSOR_IDEMPOTENCY_TTL_SECONDS",
+    "maxRetries": "POST_PROCESSOR_MAX_RETRIES",
+    "retryDelayMs": "POST_PROCESSOR_RETRY_DELAY_MS"
+  },
   "port": "PORT"
 }

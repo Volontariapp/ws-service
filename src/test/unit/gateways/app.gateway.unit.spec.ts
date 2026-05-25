@@ -6,8 +6,9 @@ import type { Logger } from '@nestjs/common';
 import { createSocketManagerServiceMock } from '../../helpers/mocks/socket-manager.service.mock.js';
 import { createJwtServiceMock } from '../../helpers/mocks/jwt.service.mock.js';
 import type { LoggerMock } from '@volontariapp/testing';
-import { createMockLogger } from '@volontariapp/testing';
+import { createMockLogger, createMock } from '@volontariapp/testing';
 import { createSocketMock } from '../../helpers/factories/socket.factory.js';
+import type { Server, BroadcastOperator } from 'socket.io';
 import { createJwtPayloadMock } from '../../helpers/factories/jwt-payload.factory.js';
 import { setupNestLoggerMock } from '../../helpers/mocks/nest-logger.mock.js';
 
@@ -25,6 +26,12 @@ describe('AppGateway (Unit)', () => {
     setupNestLoggerMock(loggerMock);
 
     gateway = new AppGateway(socketManagerMock, jwtServiceMock);
+    const serverMock = createMock<Server>();
+    const broadcastOperatorMock = createMock<BroadcastOperator<any, any>>();
+    broadcastOperatorMock.fetchSockets.mockResolvedValue([]);
+    serverMock.in.mockReturnValue(broadcastOperatorMock);
+    serverMock.fetchSockets.mockResolvedValue([]);
+    Object.defineProperty(gateway, 'server', { value: serverMock, writable: true });
   });
 
   afterEach(() => {
@@ -80,11 +87,11 @@ describe('AppGateway (Unit)', () => {
   });
 
   describe('handleDisconnect', () => {
-    it('should log on client disconnect', () => {
+    it('should log on client disconnect', async () => {
       const mockSocket = createSocketMock('socket-1');
       const logSpy = jest.spyOn(loggerMock, 'log');
 
-      gateway.handleDisconnect(mockSocket);
+      await gateway.handleDisconnect(mockSocket);
 
       expect(logSpy).toHaveBeenCalled();
     });

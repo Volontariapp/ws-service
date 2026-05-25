@@ -14,12 +14,22 @@ import { GatewaysModule } from '../gateways/gateways.module.js';
 import { CoreModule } from '../core/core.module.js';
 import { SocketManagerService } from '../core/services/socket-manager.service.js';
 import { NotificationService } from '../gateways/notification.service.js';
+import { AppConfigService } from '../config/app-config.service.js';
+
+export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
 
 @Module({
   imports: [GatewaysModule, CoreModule],
   providers: [
     wsUserCreatedOptionsProvider,
     wsEventCreatedOptionsProvider,
+    {
+      provide: GLOBAL_REDIS_PROVIDER,
+      useFactory: (configService: AppConfigService) => {
+        return new NestRedisProvider(configService.globalRedis);
+      },
+      inject: [AppConfigService],
+    },
     {
       provide: UserCreatedPostProcessor,
       useFactory: async (
@@ -39,7 +49,7 @@ import { NotificationService } from '../gateways/notification.service.js';
         return postProcessor;
       },
       inject: [
-        NestRedisProvider,
+        GLOBAL_REDIS_PROVIDER,
         WS_USER_CREATED_POST_PROCESSOR_OPTIONS,
         SocketManagerService,
         NotificationService,
@@ -61,7 +71,7 @@ import { NotificationService } from '../gateways/notification.service.js';
         void postProcessor.start();
         return postProcessor;
       },
-      inject: [NestRedisProvider, WS_EVENT_CREATED_POST_PROCESSOR_OPTIONS, NotificationService],
+      inject: [GLOBAL_REDIS_PROVIDER, WS_EVENT_CREATED_POST_PROCESSOR_OPTIONS, NotificationService],
     },
   ],
 })

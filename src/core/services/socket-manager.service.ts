@@ -6,12 +6,13 @@ import type { Redis } from 'ioredis';
 @Injectable()
 export class SocketManagerService {
   private readonly logger = new Logger(SocketManagerService.name);
-  private redisClient!: Redis;
   private readonly REDIS_KEY = 'ws_users';
 
-  constructor(@Inject(NestRedisProvider) private readonly redisProvider: RedisProvider) {
-    this.redisClient = this.redisProvider.getDriver();
+  private get redisClient(): Redis {
+    return this.redisProvider.getDriver();
   }
+
+  constructor(@Inject(NestRedisProvider) private readonly redisProvider: RedisProvider) {}
 
   async trackUser(userId: string): Promise<void> {
     await this.redisClient.sadd(this.REDIS_KEY, userId);

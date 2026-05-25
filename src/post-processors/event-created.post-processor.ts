@@ -35,14 +35,19 @@ export class EventCreatedPostProcessor extends SinglePostProcessor<WebsocketEven
 
     const payload = event.payload.after;
 
-    this.notificationService.broadcast(WebsocketEventMessagingType.WS_EVENT_CREATED, payload);
-
     if (payload.organizerId) {
-      this.notificationService.notifyUser(
+      this.notificationService.broadcastExcept(
         payload.organizerId,
         WebsocketEventMessagingType.WS_EVENT_CREATED,
         payload,
       );
+      await this.notificationService.notifyUser(
+        payload.organizerId,
+        WebsocketEventMessagingType.WS_EVENT_CREATED,
+        payload,
+      );
+    } else {
+      this.notificationService.broadcast(WebsocketEventMessagingType.WS_EVENT_CREATED, payload);
     }
   }
 }

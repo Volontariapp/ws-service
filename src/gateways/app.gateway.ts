@@ -6,6 +6,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+import type { OnApplicationShutdown } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { SocketManagerService } from '../core/services/socket-manager.service.js';
 import { JwtService } from '@volontariapp/auth';
@@ -16,7 +17,9 @@ import type { JwtPayload } from '@volontariapp/shared';
     origin: '*',
   },
 })
-export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class AppGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect, OnApplicationShutdown
+{
   private readonly logger = new Logger(AppGateway.name);
 
   @WebSocketServer()
@@ -33,7 +36,9 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
 
   async handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
-    const token = client.handshake.headers['x-internal-token'] as string | undefined;
+    const token =
+      (client.handshake.query['internalToken'] as string | undefined) ??
+      (client.handshake.headers['x-internal-token'] as string | undefined);
 
     if (!token) {
       this.logger.warn(`Client ${client.id} disconnected: Missing internal token`);
@@ -45,8 +50,18 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
     try {
       const payload = await this.jwtService.verifyInternal<JwtPayload>(token);
       const userId = payload.id;
+      const existingSockets = await this.server.in(userId).fetchSockets();
+      for (const existing of existingSockets) {
+        if (existing.id !== client.id) {
+          this.logger.log(
+            `Disconnecting stale socket ${existing.id} for user ${userId} (replaced by ${client.id})`,
+          );
+          existing.disconnect(true);
+        }
+      }
 
-      void client.join(userId);
+      await client.join(userId);
+      (client.data as { userId?: string }).userId = userId;
       await this.socketManager.trackUser(userId);
       this.logger.log(
         `Client ${client.id} joined room ${userId} and tracked in Redis (Role: ${payload.role})`,
@@ -61,7 +76,34 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
     }
   }
 
-  handleDisconnect(client: Socket) {
+  async handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
+    const userId = (client.data as { userId?: string }).userId;
+
+    if (userId) {
+      try {
+        // Only untrack if this was the last socket for this user
+        const remainingSockets = await this.server.in(userId).fetchSockets();
+        if (remainingSockets.length === 0) {
+          await this.socketManager.untrackUser(userId);
+          this.logger.log(`Last socket for user ${userId} disconnected. Untracked from Redis.`);
+        }
+      } catch (error) {
+        this.logger.error(`Error untracking user ${userId} on disconnect`, error);
+      }
+    }
+  }
+
+  async onApplicationShutdown() {
+    this.logger.log('WebSocket Gateway shutting down, cleaning up tracked users...');
+    const sockets = await this.server.fetchSockets();
+    for (const client of sockets) {
+      const userId = (client.data as { userId?: string }).userId;
+      if (userId) {
+        await this.socketManager.untrackUser(userId);
+      }
+      client.disconnect(true);
+    }
+    this.logger.log('Cleanup complete');
   }
 }

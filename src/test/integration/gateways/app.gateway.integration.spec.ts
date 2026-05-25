@@ -8,6 +8,8 @@ import { createSocketManagerServiceMock } from '../../helpers/mocks/socket-manag
 import { createJwtServiceMock } from '../../helpers/mocks/jwt.service.mock.js';
 import { createSocketMock } from '../../helpers/factories/socket.factory.js';
 import { createJwtPayloadMock } from '../../helpers/factories/jwt-payload.factory.js';
+import { createMock } from '@volontariapp/testing';
+import type { Server, BroadcastOperator } from 'socket.io';
 
 describe('AppGateway (Integration)', () => {
   let gateway: AppGateway;
@@ -33,6 +35,12 @@ describe('AppGateway (Integration)', () => {
     }).compile();
 
     gateway = module.get<AppGateway>(AppGateway);
+    const serverMock = createMock<Server>();
+    const broadcastOperatorMock = createMock<BroadcastOperator<any, any>>();
+    broadcastOperatorMock.fetchSockets.mockResolvedValue([]);
+    serverMock.in.mockReturnValue(broadcastOperatorMock);
+    serverMock.fetchSockets.mockResolvedValue([]);
+    Object.defineProperty(gateway, 'server', { value: serverMock, writable: true });
   });
 
   afterEach(() => {
