@@ -9,7 +9,7 @@ on:
 
 jobs:
   ci:
-    uses: Volontariapp/ci-tools/.github/workflows/ci-service.yml@main
+    uses: Volontariapp/ci-tools/.github/workflows/service-ci.yml@main
     with:
       service-name: ws-service
     secrets: inherit
