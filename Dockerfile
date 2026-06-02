@@ -20,7 +20,7 @@ LABEL maintainer="Volontariapp"
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=3003
+ENV PORT=3005
 
 # Sécurité : Création de l'utilisateur
 RUN addgroup --system --gid 1001 nodejs && \
