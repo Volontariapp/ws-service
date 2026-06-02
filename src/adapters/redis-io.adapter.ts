@@ -25,7 +25,6 @@ export class RedisIoAdapter extends IoAdapter {
         origin: true,
         methods: ['GET', 'POST'],
         credentials: true,
-        allowedHeaders: ['Content-Type', 'Accept', 'Authorization', 'CF-Access-Client-Id', 'CF-Access-Client-Secret', 'X-Requested-With'],
       },
     }) as Server;
     server.adapter(this.adapterConstructor);
