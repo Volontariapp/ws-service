@@ -36,19 +36,26 @@ export class AppGateway
 
   async handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
-    const token =
+    const internalToken =
       (client.handshake.query['internalToken'] as string | undefined) ??
       (client.handshake.headers['x-internal-token'] as string | undefined);
 
-    if (!token) {
-      this.logger.warn(`Client ${client.id} disconnected: Missing internal token`);
+    const accessToken = client.handshake.query['token'] as string | undefined;
+
+    if (!internalToken && !accessToken) {
+      this.logger.warn(`Client ${client.id} disconnected: Missing internal token or access token`);
       client.emit('unauthorized', { message: 'Missing internal token' });
       client.disconnect(true);
       return;
     }
 
     try {
-      const payload = await this.jwtService.verifyInternal<JwtPayload>(token);
+      let payload: JwtPayload;
+      if (internalToken) {
+        payload = await this.jwtService.verifyInternal<JwtPayload>(internalToken);
+      } else {
+        payload = await this.jwtService.verifyAccessToken<JwtPayload>(accessToken as string);
+      }
       const userId = payload.id;
       const existingSockets = await this.server.in(userId).fetchSockets();
       for (const existing of existingSockets) {
