@@ -2,5 +2,9 @@
   "logger": {
     "level": "warn",
     "format": "json"
+  },
+  "auth": {
+    "internalPublicKeyPath": "certs/internal.pub",
+    "accessTokenPublicKeyPath": "certs/access.pub"
   }
 }

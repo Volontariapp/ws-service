@@ -13,7 +13,8 @@
     "format": "text"
   },
   "auth": {
-    "internalPublicKeyPath": "certs/internal.pub"
+    "internalPublicKeyPath": "certs/internal.pub",
+    "accessTokenPublicKeyPath": "certs/access.pub"
   },
   "microServices": {
     "msUserUrl": "localhost:5001",

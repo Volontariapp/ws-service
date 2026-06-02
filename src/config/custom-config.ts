@@ -1,5 +1,4 @@
 import { BaseConfig, RedisConfig } from '@volontariapp/config';
-import { MsAuthConfig } from '@volontariapp/config';
 import { Type } from 'class-transformer';
 import { IsDefined, IsNumber, IsString, ValidateNested } from 'class-validator';
 
@@ -29,6 +28,16 @@ export class PostProcessorConfig {
   retryDelayMs!: number;
 }
 
+export class WsAuthConfig {
+  @IsDefined()
+  @IsString()
+  internalPublicKeyPath!: string;
+
+  @IsDefined()
+  @IsString()
+  accessTokenPublicKeyPath!: string;
+}
+
 export class CustomConfig extends BaseConfig {
   @IsDefined()
   @ValidateNested()
@@ -47,6 +56,6 @@ export class CustomConfig extends BaseConfig {
 
   @IsDefined()
   @ValidateNested()
-  @Type(() => MsAuthConfig)
-  auth!: MsAuthConfig;
+  @Type(() => WsAuthConfig)
+  auth!: WsAuthConfig;
 }
