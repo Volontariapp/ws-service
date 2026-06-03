@@ -44,7 +44,7 @@ describe('EventCreatedPostProcessor (Integration)', () => {
     jest.clearAllMocks();
   });
 
-  describe('processEvent', () => {
+  describe('processEvents', () => {
     it('should broadcast and notify organizer on WS_EVENT_CREATED event', async () => {
       const payloadOverrides = { id: 'test-event-123', organizerId: 'organizer-456' };
       const event = createEventCreatedEventMock(payloadOverrides);
@@ -53,7 +53,7 @@ describe('EventCreatedPostProcessor (Integration)', () => {
       const broadcastExceptSpy = jest.spyOn(notificationServiceMock, 'broadcastExcept');
       const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
 
-      await postProcessor['processEvent'](event, messageId);
+      await postProcessor['processEvents']([{ event, messageId } as never]);
 
       expect(broadcastExceptSpy).toHaveBeenCalledWith(
         'organizer-456',
@@ -75,7 +75,7 @@ describe('EventCreatedPostProcessor (Integration)', () => {
       const broadcastSpy = jest.spyOn(notificationServiceMock, 'broadcast');
       const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
 
-      await postProcessor['processEvent'](event, messageId);
+      await postProcessor['processEvents']([{ event, messageId } as never]);
 
       expect(broadcastSpy).toHaveBeenCalledWith(
         WebsocketEventMessagingType.WS_EVENT_CREATED,

@@ -53,7 +53,7 @@ describe('UserCreatedPostProcessor (Integration)', () => {
     jest.clearAllMocks();
   });
 
-  describe('processEvent', () => {
+  describe('processEvents', () => {
     it('should track user and notify user on WS_USER_CREATED event', async () => {
       const payloadOverrides = { id: 'test-user-123' };
       const event = createUserCreatedEventMock(payloadOverrides);
@@ -62,7 +62,7 @@ describe('UserCreatedPostProcessor (Integration)', () => {
       const trackUserSpy = jest.spyOn(socketManagerMock, 'trackUser');
       const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
 
-      await postProcessor['processEvent'](event, messageId);
+      await postProcessor['processEvents']([{ event, messageId } as never]);
 
       expect(trackUserSpy).toHaveBeenCalledWith('test-user-123');
       expect(notifyUserSpy).toHaveBeenCalledWith(
