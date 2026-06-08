@@ -18,6 +18,7 @@ export const createUserCreatedEventMock = (
   },
   emitter: '',
   emitterId: '',
+  correlationId: '',
   version: 0,
   createdAt: '',
 });
@@ -37,6 +38,7 @@ export const createEventCreatedEventMock = (
   },
   emitter: '',
   emitterId: '',
+  correlationId: '',
   version: 0,
   createdAt: '',
 });
