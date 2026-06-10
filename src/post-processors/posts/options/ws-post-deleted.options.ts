@@ -1,7 +1,7 @@
-import { AppConfigService } from '../../config/app-config.service.js';
+import { AppConfigService } from '../../../config/app-config.service.js';
 import { Streams } from '@volontariapp/shared';
 import { getEventStreamName } from '@volontariapp/messaging';
-import { WS_POST_DELETED_POST_PROCESSOR_OPTIONS } from './constants.js';
+import { WS_POST_DELETED_POST_PROCESSOR_OPTIONS } from '../../options/constants.js';
 
 export const wsPostDeletedOptionsProvider = {
   provide: WS_POST_DELETED_POST_PROCESSOR_OPTIONS,

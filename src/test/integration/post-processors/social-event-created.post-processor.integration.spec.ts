@@ -1,17 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
-import { EventCreatedPostProcessor } from '../../../post-processors/event-created.post-processor.js';
+import { SocialEventCreatedPostProcessor } from '../../../post-processors/events/social-event-created.post-processor.js';
 import type { NotificationService } from '../../../gateways/notification.service.js';
 import { createNotificationServiceMock } from '../../helpers/mocks/notification.service.mock.js';
 import { createEventCreatedEventMock } from '../../helpers/factories/stream-event.factory.js';
-import { WebsocketEventMessagingType } from '@volontariapp/messaging';
+import { SocialEventMessagingType, WebsocketMessagingType } from '@volontariapp/messaging';
 import { createMock } from '@volontariapp/testing';
 import type { Redis } from 'ioredis';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 
-describe('EventCreatedPostProcessor (Integration)', () => {
-  let postProcessor: EventCreatedPostProcessor;
+describe('SocialEventCreatedPostProcessor (Integration)', () => {
+  let postProcessor: SocialEventCreatedPostProcessor;
   let notificationServiceMock: jest.Mocked<NotificationService>;
 
   beforeEach(async () => {
@@ -30,14 +30,14 @@ describe('EventCreatedPostProcessor (Integration)', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         {
-          provide: EventCreatedPostProcessor,
+          provide: SocialEventCreatedPostProcessor,
           useFactory: () =>
-            new EventCreatedPostProcessor(redisMock, optionsMock, notificationServiceMock),
+            new SocialEventCreatedPostProcessor(redisMock, optionsMock, notificationServiceMock),
         },
       ],
     }).compile();
 
-    postProcessor = module.get<EventCreatedPostProcessor>(EventCreatedPostProcessor);
+    postProcessor = module.get<SocialEventCreatedPostProcessor>(SocialEventCreatedPostProcessor);
   });
 
   afterEach(() => {
@@ -45,9 +45,10 @@ describe('EventCreatedPostProcessor (Integration)', () => {
   });
 
   describe('processEvents', () => {
-    it('should broadcast and notify organizer on WS_EVENT_CREATED event', async () => {
-      const payloadOverrides = { id: 'test-event-123', organizerId: 'organizer-456' };
+    it('should broadcast and notify organizer on EVENT_SOCIAL_CREATED event', async () => {
+      const payloadOverrides = { eventId: 'test-event-123', organizerId: 'organizer-456' };
       const event = createEventCreatedEventMock(payloadOverrides);
+      event.emitterId = 'organizer-456';
       const messageId = 'msg-123';
 
       const broadcastExceptSpy = jest.spyOn(notificationServiceMock, 'broadcastExcept');
@@ -57,28 +58,29 @@ describe('EventCreatedPostProcessor (Integration)', () => {
 
       expect(broadcastExceptSpy).toHaveBeenCalledWith(
         'organizer-456',
-        WebsocketEventMessagingType.WS_EVENT_CREATED,
+        WebsocketMessagingType.EVENT_CREATED,
         event.payload.after,
       );
       expect(notifyUserSpy).toHaveBeenCalledWith(
         'organizer-456',
-        WebsocketEventMessagingType.WS_EVENT_CREATED,
+        WebsocketMessagingType.EVENT_CREATED,
         event.payload.after,
       );
     });
 
-    it('should broadcast but not notify if organizerId is missing', async () => {
-      const payloadOverrides = { id: 'test-event-123', organizerId: undefined };
+    it('should broadcast but not notify if emitterId is missing', async () => {
+      const payloadOverrides = { eventId: 'test-event-123' };
       const event = createEventCreatedEventMock(payloadOverrides);
+      event.emitterId = undefined as unknown as string;
       const messageId = 'msg-123';
 
       const broadcastSpy = jest.spyOn(notificationServiceMock, 'broadcast');
       const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
 
-      await postProcessor['processEvents']([{ event, messageId } as never]);
+      await postProcessor['processEvents']([{ event, messageId }]);
 
       expect(broadcastSpy).toHaveBeenCalledWith(
-        WebsocketEventMessagingType.WS_EVENT_CREATED,
+        WebsocketMessagingType.EVENT_CREATED,
         event.payload.after,
       );
       expect(notifyUserSpy).not.toHaveBeenCalled();
@@ -86,9 +88,9 @@ describe('EventCreatedPostProcessor (Integration)', () => {
   });
 
   describe('shouldProcess', () => {
-    it('should return true for WS_EVENT_CREATED event type', () => {
+    it('should return true for EVENT_SOCIAL_CREATED event type', () => {
       const result = postProcessor['shouldProcess'](
-        WebsocketEventMessagingType.WS_EVENT_CREATED.toString(),
+        SocialEventMessagingType.EVENT_SOCIAL_CREATED.toString(),
       );
       expect(result).toBe(true);
     });

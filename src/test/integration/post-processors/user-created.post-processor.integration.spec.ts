@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
-import { UserCreatedPostProcessor } from '../../../post-processors/user-created.post-processor.js';
+import { UserCreatedPostProcessor } from '../../../post-processors/users/user-created.post-processor.js';
 import type { SocketManagerService } from '../../../core/services/socket-manager.service.js';
 import type { NotificationService } from '../../../gateways/notification.service.js';
 import { createSocketManagerServiceMock } from '../../helpers/mocks/socket-manager.service.mock.js';
 import { createNotificationServiceMock } from '../../helpers/mocks/notification.service.mock.js';
 import { createUserCreatedEventMock } from '../../helpers/factories/stream-event.factory.js';
-import { WebsocketEventMessagingType } from '@volontariapp/messaging';
+import { SocialEventMessagingType, WebsocketMessagingType } from '@volontariapp/messaging';
 import { createMock } from '@volontariapp/testing';
 import type { Redis } from 'ioredis';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
@@ -54,9 +54,10 @@ describe('UserCreatedPostProcessor (Integration)', () => {
   });
 
   describe('processEvents', () => {
-    it('should track user and notify user on WS_USER_CREATED event', async () => {
-      const payloadOverrides = { id: 'test-user-123' };
+    it('should track user and notify user on USER_SOCIAL_CREATED event', async () => {
+      const payloadOverrides = { userId: 'test-user-123' };
       const event = createUserCreatedEventMock(payloadOverrides);
+      event.emitterId = 'test-emitter-123';
       const messageId = 'msg-123';
 
       const trackUserSpy = jest.spyOn(socketManagerMock, 'trackUser');
@@ -64,19 +65,44 @@ describe('UserCreatedPostProcessor (Integration)', () => {
 
       await postProcessor['processEvents']([{ event, messageId } as never]);
 
-      expect(trackUserSpy).toHaveBeenCalledWith('test-user-123');
+      expect(trackUserSpy).toHaveBeenCalledWith('test-emitter-123');
       expect(notifyUserSpy).toHaveBeenCalledWith(
-        'test-user-123',
-        WebsocketEventMessagingType.WS_USER_CREATED,
+        'test-emitter-123',
+        WebsocketMessagingType.USER_CREATED,
+        event.payload.after,
+      );
+    });
+
+    it('should also track and notify payload.userId if present (admin creation)', async () => {
+      const payloadOverrides = { id: 'test-user-123', userId: 'created-user-123' };
+      const event = createUserCreatedEventMock(payloadOverrides);
+      event.emitterId = 'admin-emitter-123';
+      const messageId = 'msg-123';
+
+      const trackUserSpy = jest.spyOn(socketManagerMock, 'trackUser');
+      const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
+
+      await postProcessor['processEvents']([{ event, messageId }]);
+
+      expect(trackUserSpy).toHaveBeenCalledWith('created-user-123');
+      expect(notifyUserSpy).toHaveBeenCalledWith(
+        'created-user-123',
+        WebsocketMessagingType.USER_CREATED,
+        event.payload.after,
+      );
+      expect(trackUserSpy).toHaveBeenCalledWith('admin-emitter-123');
+      expect(notifyUserSpy).toHaveBeenCalledWith(
+        'admin-emitter-123',
+        WebsocketMessagingType.USER_CREATED,
         event.payload.after,
       );
     });
   });
 
   describe('shouldProcess', () => {
-    it('should return true for WS_USER_CREATED event type', () => {
+    it('should return true for USER_SOCIAL_CREATED event type', () => {
       const result = postProcessor['shouldProcess'](
-        WebsocketEventMessagingType.WS_USER_CREATED.toString(),
+        SocialEventMessagingType.USER_SOCIAL_CREATED.toString(),
       );
       expect(result).toBe(true);
     });

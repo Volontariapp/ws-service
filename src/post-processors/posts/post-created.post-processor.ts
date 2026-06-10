@@ -2,11 +2,15 @@ import { BatchPostProcessor, type BatchEventItem } from '@volontariapp/post-proc
 import { Injectable } from '@nestjs/common';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
-import { WebsocketEventMessagingType } from '@volontariapp/messaging';
-import { NotificationService } from '../gateways/notification.service.js';
+import {
+  IPostCreatedWebsocketPayload,
+  SocialEventMessagingType,
+  WebsocketMessagingType,
+} from '@volontariapp/messaging';
+import { NotificationService } from '../../gateways/notification.service.js';
 
 @Injectable()
-export class PostCreatedPostProcessor extends BatchPostProcessor<WebsocketEventMessagingType.WS_POST_CREATED> {
+export class PostCreatedPostProcessor extends BatchPostProcessor<SocialEventMessagingType.POST_SOCIAL_CREATED> {
   constructor(
     redisClient: Redis,
     options: PostProcessorOptions,
@@ -15,12 +19,12 @@ export class PostCreatedPostProcessor extends BatchPostProcessor<WebsocketEventM
     super(redisClient, options);
   }
 
-  protected override shouldProcess(eventType: WebsocketEventMessagingType | string): boolean {
-    return eventType === WebsocketEventMessagingType.WS_POST_CREATED.toString();
+  protected override shouldProcess(eventType: SocialEventMessagingType | string): boolean {
+    return eventType === SocialEventMessagingType.POST_SOCIAL_CREATED.toString();
   }
 
   protected async processEvents(
-    events: BatchEventItem<WebsocketEventMessagingType.WS_POST_CREATED>[],
+    events: BatchEventItem<SocialEventMessagingType.POST_SOCIAL_CREATED>[],
   ): Promise<void> {
     await Promise.all(
       events.map(async ({ event, messageId }) => {
@@ -29,7 +33,7 @@ export class PostCreatedPostProcessor extends BatchPostProcessor<WebsocketEventM
           eventId: event.id,
         });
 
-        const payload = event.payload;
+        const payload = event.payload.after;
         if (!event.emitterId) {
           this.logger.warn('No emitterId found for WS_POST_CREATED, skipping notifications', {
             messageId,
@@ -37,18 +41,18 @@ export class PostCreatedPostProcessor extends BatchPostProcessor<WebsocketEventM
           return;
         }
 
-        const isEmitterPayload = { isEmitter: true, ...payload };
-        const othersPayload = { isEmitter: false, ...payload };
+        const isEmitterPayload: IPostCreatedWebsocketPayload = { isEmitter: true, ...payload };
+        const othersPayload: IPostCreatedWebsocketPayload = { isEmitter: false, ...payload };
 
         this.notificationService.broadcastExcept(
           event.emitterId,
-          WebsocketEventMessagingType.WS_POST_CREATED,
+          WebsocketMessagingType.POST_CREATED,
           othersPayload,
         );
 
         await this.notificationService.notifyUser(
           event.emitterId,
-          WebsocketEventMessagingType.WS_POST_CREATED,
+          WebsocketMessagingType.POST_CREATED,
           isEmitterPayload,
         );
       }),

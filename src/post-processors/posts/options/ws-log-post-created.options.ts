@@ -1,13 +1,13 @@
-import { AppConfigService } from '../../config/app-config.service.js';
+import { AppConfigService } from '../../../config/app-config.service.js';
 import { Streams } from '@volontariapp/shared';
 import { getEventStreamName } from '@volontariapp/messaging';
-import { WS_POST_CREATED_POST_PROCESSOR_OPTIONS } from './constants.js';
+import { WS_LOG_POST_CREATED_POST_PROCESSOR_OPTIONS } from '../../options/constants.js';
 
-export const wsPostCreatedOptionsProvider = {
-  provide: WS_POST_CREATED_POST_PROCESSOR_OPTIONS,
+export const wsLogPostCreatedOptionsProvider = {
+  provide: WS_LOG_POST_CREATED_POST_PROCESSOR_OPTIONS,
   useFactory: (appConfig: AppConfigService) => ({
-    groupName: 'WsPostCreatedGroup',
-    streamName: getEventStreamName(Streams.WS_POST_CREATED_FEEDBACK),
+    groupName: 'WsLogPostCreatedGroup',
+    streamName: getEventStreamName(Streams.POST_CREATED),
     batchSize: appConfig.config.postProcessor.batchSize,
     blockTimeout: appConfig.config.postProcessor.blockTimeout,
     idempotencyTtlSeconds: appConfig.config.postProcessor.idempotencyTtlSeconds,

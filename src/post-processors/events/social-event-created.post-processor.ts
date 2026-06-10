@@ -2,11 +2,15 @@ import { BatchPostProcessor, type BatchEventItem } from '@volontariapp/post-proc
 import { Injectable } from '@nestjs/common';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
-import { WebsocketEventMessagingType } from '@volontariapp/messaging';
-import { NotificationService } from '../gateways/notification.service.js';
+import {
+  IEventCreatedWebsocketPayload,
+  SocialEventMessagingType,
+  WebsocketMessagingType,
+} from '@volontariapp/messaging';
+import { NotificationService } from '../../gateways/notification.service.js';
 
 @Injectable()
-export class EventCreatedPostProcessor extends BatchPostProcessor<WebsocketEventMessagingType.WS_EVENT_CREATED> {
+export class SocialEventCreatedPostProcessor extends BatchPostProcessor<SocialEventMessagingType.EVENT_SOCIAL_CREATED> {
   constructor(
     redisClient: Redis,
     options: PostProcessorOptions,
@@ -15,12 +19,12 @@ export class EventCreatedPostProcessor extends BatchPostProcessor<WebsocketEvent
     super(redisClient, options);
   }
 
-  protected override shouldProcess(eventType: WebsocketEventMessagingType | string): boolean {
-    return eventType === WebsocketEventMessagingType.WS_EVENT_CREATED.toString();
+  protected override shouldProcess(eventType: SocialEventMessagingType | string): boolean {
+    return eventType === SocialEventMessagingType.EVENT_SOCIAL_CREATED.toString();
   }
 
   protected async processEvents(
-    events: BatchEventItem<WebsocketEventMessagingType.WS_EVENT_CREATED>[],
+    events: BatchEventItem<SocialEventMessagingType.EVENT_SOCIAL_CREATED>[],
   ): Promise<void> {
     await Promise.all(
       events.map(async ({ event, messageId }) => {
@@ -30,21 +34,21 @@ export class EventCreatedPostProcessor extends BatchPostProcessor<WebsocketEvent
           eventId: event.id,
         });
 
-        const payload = event.payload.after;
+        const payload: IEventCreatedWebsocketPayload = event.payload.after;
 
-        if (payload.organizerId) {
+        if (event.emitterId) {
           this.notificationService.broadcastExcept(
-            payload.organizerId,
-            WebsocketEventMessagingType.WS_EVENT_CREATED,
+            event.emitterId,
+            WebsocketMessagingType.EVENT_CREATED,
             payload,
           );
           await this.notificationService.notifyUser(
-            payload.organizerId,
-            WebsocketEventMessagingType.WS_EVENT_CREATED,
+            event.emitterId,
+            WebsocketMessagingType.EVENT_CREATED,
             payload,
           );
         } else {
-          this.notificationService.broadcast(WebsocketEventMessagingType.WS_EVENT_CREATED, payload);
+          this.notificationService.broadcast(WebsocketMessagingType.EVENT_CREATED, payload);
         }
       }),
     );

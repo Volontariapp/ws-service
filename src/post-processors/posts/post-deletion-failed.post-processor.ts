@@ -2,11 +2,15 @@ import { BatchPostProcessor, type BatchEventItem } from '@volontariapp/post-proc
 import { Injectable } from '@nestjs/common';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
-import { WebsocketEventMessagingType } from '@volontariapp/messaging';
-import { NotificationService } from '../gateways/notification.service.js';
+import {
+  IPostDeletionFailedWebsocketPayload,
+  SocialEventMessagingType,
+  WebsocketMessagingType,
+} from '@volontariapp/messaging';
+import { NotificationService } from '../../gateways/notification.service.js';
 
 @Injectable()
-export class PostDeletionFailedPostProcessor extends BatchPostProcessor<WebsocketEventMessagingType.WS_POST_DELETION_FAILED> {
+export class PostDeletionFailedPostProcessor extends BatchPostProcessor<SocialEventMessagingType.POST_SOCIAL_DELETION_FAILED> {
   constructor(
     redisClient: Redis,
     options: PostProcessorOptions,
@@ -15,12 +19,12 @@ export class PostDeletionFailedPostProcessor extends BatchPostProcessor<Websocke
     super(redisClient, options);
   }
 
-  protected override shouldProcess(eventType: WebsocketEventMessagingType | string): boolean {
-    return eventType === WebsocketEventMessagingType.WS_POST_DELETION_FAILED.toString();
+  protected override shouldProcess(eventType: SocialEventMessagingType | string): boolean {
+    return eventType === SocialEventMessagingType.POST_SOCIAL_DELETION_FAILED.toString();
   }
 
   protected async processEvents(
-    events: BatchEventItem<WebsocketEventMessagingType.WS_POST_DELETION_FAILED>[],
+    events: BatchEventItem<SocialEventMessagingType.POST_SOCIAL_DELETION_FAILED>[],
   ): Promise<void> {
     await Promise.all(
       events.map(async ({ event, messageId }) => {
@@ -29,7 +33,7 @@ export class PostDeletionFailedPostProcessor extends BatchPostProcessor<Websocke
           eventId: event.id,
         });
 
-        const payload = event.payload;
+        const payload = event.payload.after;
         if (!event.emitterId) {
           this.logger.warn(
             'No emitterId found for WS_POST_DELETION_FAILED, skipping notifications',
@@ -38,11 +42,14 @@ export class PostDeletionFailedPostProcessor extends BatchPostProcessor<Websocke
           return;
         }
 
-        const isEmitterPayload = { isEmitter: true, ...payload };
+        const isEmitterPayload: IPostDeletionFailedWebsocketPayload = {
+          isEmitter: true,
+          ...payload,
+        };
 
         await this.notificationService.notifyUser(
           event.emitterId,
-          WebsocketEventMessagingType.WS_POST_DELETION_FAILED,
+          WebsocketMessagingType.POST_DELETION_FAILED,
           isEmitterPayload,
         );
       }),

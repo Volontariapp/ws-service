@@ -1,20 +1,19 @@
 import type {
   StreamEvent,
-  IUserCreatedWebsocketPayload,
-  IEventCreatedWebsocketPayload,
+  IUserSocialCreatedPayload,
+  IEventCreatedPayload,
 } from '@volontariapp/messaging';
-import { WebsocketEventMessagingType } from '@volontariapp/messaging';
+import { EventEventMessagingType, SocialEventMessagingType } from '@volontariapp/messaging';
 
 export const createUserCreatedEventMock = (
-  payloadOverrides: Partial<IUserCreatedWebsocketPayload> = {},
-): StreamEvent<IUserCreatedWebsocketPayload> => ({
+  payloadOverrides: Partial<IUserSocialCreatedPayload> = {},
+): StreamEvent<IUserSocialCreatedPayload> => ({
   id: 'test-event-id',
-  type: WebsocketEventMessagingType.WS_USER_CREATED.toString(),
+  type: SocialEventMessagingType.USER_SOCIAL_CREATED.toString(),
   payload: {
     after: {
-      id: 'user-123',
       ...payloadOverrides,
-    } as IUserCreatedWebsocketPayload,
+    },
   },
   emitter: '',
   emitterId: '',
@@ -24,17 +23,15 @@ export const createUserCreatedEventMock = (
 });
 
 export const createEventCreatedEventMock = (
-  payloadOverrides: Partial<IEventCreatedWebsocketPayload> = {},
-): StreamEvent<IEventCreatedWebsocketPayload> => ({
+  payloadOverrides: Partial<IEventCreatedPayload> = {},
+): StreamEvent<IEventCreatedPayload> => ({
   id: 'test-event-id',
-  type: WebsocketEventMessagingType.WS_EVENT_CREATED.toString(),
+  type: EventEventMessagingType.EVENT_CREATED.toString(),
   payload: {
     before: undefined,
     after: {
-      id: 'event-123',
-      organizerId: 'organizer-123',
       ...payloadOverrides,
-    } as IEventCreatedWebsocketPayload,
+    } as IEventCreatedPayload,
   },
   emitter: '',
   emitterId: '',

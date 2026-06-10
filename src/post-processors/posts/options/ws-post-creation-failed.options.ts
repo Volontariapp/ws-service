@@ -1,13 +1,13 @@
-import { AppConfigService } from '../../config/app-config.service.js';
+import { AppConfigService } from '../../../config/app-config.service.js';
 import { Streams } from '@volontariapp/shared';
 import { getEventStreamName } from '@volontariapp/messaging';
-import { WS_POST_DELETION_FAILED_POST_PROCESSOR_OPTIONS } from './constants.js';
+import { WS_POST_CREATION_FAILED_POST_PROCESSOR_OPTIONS } from '../../options/constants.js';
 
-export const wsPostDeletionFailedOptionsProvider = {
-  provide: WS_POST_DELETION_FAILED_POST_PROCESSOR_OPTIONS,
+export const wsPostCreationFailedOptionsProvider = {
+  provide: WS_POST_CREATION_FAILED_POST_PROCESSOR_OPTIONS,
   useFactory: (appConfig: AppConfigService) => ({
-    groupName: 'WsPostDeletionFailedGroup',
-    streamName: getEventStreamName(Streams.WS_POST_DELETED_FEEDBACK),
+    groupName: 'WsPostCreationFailedGroup',
+    streamName: getEventStreamName(Streams.WS_POST_CREATED_FEEDBACK),
     batchSize: appConfig.config.postProcessor.batchSize,
     blockTimeout: appConfig.config.postProcessor.blockTimeout,
     idempotencyTtlSeconds: appConfig.config.postProcessor.idempotencyTtlSeconds,

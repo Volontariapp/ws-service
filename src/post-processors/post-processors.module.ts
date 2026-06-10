@@ -2,23 +2,23 @@ import { Module } from '@nestjs/common';
 import { RedisProvider } from '@volontariapp/bridge';
 import { NestRedisProvider } from '@volontariapp/bridge-nest';
 import { PostProcessorOptions } from '@volontariapp/post-processors';
-import { UserCreatedPostProcessor } from './user-created.post-processor.js';
-import { EventCreatedPostProcessor } from './event-created.post-processor.js';
-import { LogPostCreatedPostProcessor } from './log-post-created.post-processor.js';
-import { PostCreatedPostProcessor } from './post-created.post-processor.js';
-import { PostCreationFailedPostProcessor } from './post-creation-failed.post-processor.js';
-import { PostDeletedPostProcessor } from './post-deleted.post-processor.js';
-import { PostDeletionFailedPostProcessor } from './post-deletion-failed.post-processor.js';
+import { UserCreatedPostProcessor } from './users/user-created.post-processor.js';
+import { SocialEventCreatedPostProcessor } from './events/social-event-created.post-processor.js';
+import { LogPostCreatedPostProcessor } from './posts/log-post-created.post-processor.js';
+import { PostCreatedPostProcessor } from './posts/post-created.post-processor.js';
+import { PostCreationFailedPostProcessor } from './posts/post-creation-failed.post-processor.js';
+import { PostDeletedPostProcessor } from './posts/post-deleted.post-processor.js';
+import { PostDeletionFailedPostProcessor } from './posts/post-deletion-failed.post-processor.js';
 import {
   WS_USER_CREATED_POST_PROCESSOR_OPTIONS,
-  WS_EVENT_CREATED_POST_PROCESSOR_OPTIONS,
+  WS_SOCIAL_EVENT_CREATED_POST_PROCESSOR_OPTIONS,
   WS_LOG_POST_CREATED_POST_PROCESSOR_OPTIONS,
   WS_POST_CREATED_POST_PROCESSOR_OPTIONS,
   WS_POST_CREATION_FAILED_POST_PROCESSOR_OPTIONS,
   WS_POST_DELETED_POST_PROCESSOR_OPTIONS,
   WS_POST_DELETION_FAILED_POST_PROCESSOR_OPTIONS,
   wsUserCreatedOptionsProvider,
-  wsEventCreatedOptionsProvider,
+  wsSocialEventCreatedOptionsProvider,
   wsLogPostCreatedOptionsProvider,
   wsPostCreatedOptionsProvider,
   wsPostCreationFailedOptionsProvider,
@@ -37,7 +37,7 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
   imports: [GatewaysModule, CoreModule],
   providers: [
     wsUserCreatedOptionsProvider,
-    wsEventCreatedOptionsProvider,
+    wsSocialEventCreatedOptionsProvider,
     wsLogPostCreatedOptionsProvider,
     wsPostCreatedOptionsProvider,
     wsPostCreationFailedOptionsProvider,
@@ -76,14 +76,14 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
       ],
     },
     {
-      provide: EventCreatedPostProcessor,
+      provide: SocialEventCreatedPostProcessor,
       useFactory: async (
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         notificationService: NotificationService,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new EventCreatedPostProcessor(
+        const postProcessor = new SocialEventCreatedPostProcessor(
           redisProvider.getDriver(),
           options,
           notificationService,
@@ -91,7 +91,11 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         void postProcessor.start();
         return postProcessor;
       },
-      inject: [GLOBAL_REDIS_PROVIDER, WS_EVENT_CREATED_POST_PROCESSOR_OPTIONS, NotificationService],
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_SOCIAL_EVENT_CREATED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+      ],
     },
     {
       provide: PostCreatedPostProcessor,
