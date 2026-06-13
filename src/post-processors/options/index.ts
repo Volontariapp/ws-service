@@ -6,3 +6,5 @@ export * from '../posts/options/ws-log-post-created.options.js';
 export * from '../posts/options/ws-post-creation-failed.options.js';
 export * from '../posts/options/ws-post-deleted.options.js';
 export * from '../posts/options/ws-post-deletion-failed.options.js';
+export * from '../jobs/options/ws-job-outbox-success.options.js';
+export * from '../jobs/options/ws-job-outbox-failed.options.js';
