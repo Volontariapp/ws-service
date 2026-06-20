@@ -14,4 +14,8 @@ export class AppConfigService {
   get globalRedis() {
     return this.config.globalRedis;
   }
+
+  get db() {
+    return this.config.db;
+  }
 }
