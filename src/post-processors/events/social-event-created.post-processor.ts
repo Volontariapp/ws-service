@@ -6,8 +6,13 @@ import {
   IEventCreatedWebsocketPayload,
   SocialEventMessagingType,
   WebsocketMessagingType,
+  EventEventMessagingType,
 } from '@volontariapp/messaging';
 import { NotificationService } from '../../gateways/notification.service.js';
+import { AppDataSource } from '../../config/data-source.js';
+import { EventQueueModel } from '@volontariapp/database';
+import { Streams } from '@volontariapp/shared';
+import { EventQueueRepository } from '@volontariapp/outbox';
 
 @Injectable()
 export class SocialEventCreatedPostProcessor extends BatchPostProcessor<SocialEventMessagingType.EVENT_SOCIAL_CREATED> {
@@ -50,6 +55,31 @@ export class SocialEventCreatedPostProcessor extends BatchPostProcessor<SocialEv
         } else {
           this.notificationService.broadcast(WebsocketMessagingType.EVENT_CREATED, payload);
         }
+
+        const eventId = payload.eventId;
+        const repo = new EventQueueRepository(AppDataSource.getRepository(EventQueueModel));
+
+        const afterPayload = {
+          eventId,
+          userId: event.emitterId,
+        };
+
+        await repo.create({
+          type: EventEventMessagingType.EVENT_CREATION_SUCCESSFULL,
+          emitter: 'ws-service',
+          emitterId: event.emitterId,
+          traceId: event.traceId,
+          correlationId: event.correlationId,
+          payload: {
+            before: undefined,
+            after: afterPayload,
+          },
+          targetServices: [Streams.EVENT_SUCCESSFULLY_CREATED],
+        });
+        this.logger.info('Feedback event added to database event_queue', {
+          eventId,
+          type: EventEventMessagingType.EVENT_CREATION_SUCCESSFULL,
+        });
       }),
     );
   }
