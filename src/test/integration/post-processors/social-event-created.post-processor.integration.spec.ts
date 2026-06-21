@@ -1,11 +1,24 @@
-import { afterEach, beforeEach, beforeAll, afterAll, describe, expect, it, jest } from '@jest/globals';
+import {
+  afterEach,
+  beforeEach,
+  beforeAll,
+  afterAll,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 import { SocialEventCreatedPostProcessor } from '../../../post-processors/events/social-event-created.post-processor.js';
 import type { NotificationService } from '../../../gateways/notification.service.js';
 import { createNotificationServiceMock } from '../../helpers/mocks/notification.service.mock.js';
 import { createEventCreatedEventMock } from '../../helpers/factories/stream-event.factory.js';
-import { SocialEventMessagingType, WebsocketMessagingType, EventEventMessagingType } from '@volontariapp/messaging';
+import {
+  SocialEventMessagingType,
+  WebsocketMessagingType,
+  EventEventMessagingType,
+} from '@volontariapp/messaging';
 import { createMock } from '@volontariapp/testing';
 import type { Redis } from 'ioredis';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
@@ -143,9 +156,7 @@ describe('SocialEventCreatedPostProcessor (Integration)', () => {
       const broadcastSpy = jest.spyOn(notificationServiceMock, 'broadcast');
       const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
 
-      await expect(
-        postProcessor['processEvents']([{ event, messageId }]),
-      ).rejects.toThrow();
+      await expect(postProcessor['processEvents']([{ event, messageId }])).rejects.toThrow();
 
       expect(broadcastSpy).toHaveBeenCalledWith(
         WebsocketMessagingType.EVENT_CREATED,

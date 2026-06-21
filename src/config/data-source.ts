@@ -5,7 +5,15 @@ import { existsSync } from 'fs';
 import { CustomConfig } from './custom-config.js';
 
 import { loadConfig } from '@volontariapp/config';
-import { EventQueueModel, JobsOutboxModel, JobAuditModel } from '@volontariapp/database';
+import {
+  databaseMapper,
+  EventQueueEntity,
+  EventQueueModel,
+  JobsOutboxModel,
+  JobAuditModel,
+} from '@volontariapp/database';
+
+databaseMapper.registerBidirectional(EventQueueModel, EventQueueEntity);
 
 function resolveConfigDirectory(): string {
   const currentFileDir = dirname(fileURLToPath(import.meta.url));

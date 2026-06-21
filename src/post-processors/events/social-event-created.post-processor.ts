@@ -10,11 +10,9 @@ import {
 } from '@volontariapp/messaging';
 import { NotificationService } from '../../gateways/notification.service.js';
 import { AppDataSource } from '../../config/data-source.js';
-import { databaseMapper, EventQueueEntity, EventQueueModel } from '@volontariapp/database';
+import { EventQueueModel } from '@volontariapp/database';
 import { Streams } from '@volontariapp/shared';
 import { EventQueueRepository } from '@volontariapp/outbox';
-
-databaseMapper.registerBidirectional(EventQueueModel, EventQueueEntity);
 
 @Injectable()
 export class SocialEventCreatedPostProcessor extends BatchPostProcessor<SocialEventMessagingType.EVENT_SOCIAL_CREATED> {
