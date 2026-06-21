@@ -1,20 +1,38 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, beforeAll, afterAll, describe, expect, it, jest } from '@jest/globals';
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 import { SocialEventCreatedPostProcessor } from '../../../post-processors/events/social-event-created.post-processor.js';
 import type { NotificationService } from '../../../gateways/notification.service.js';
 import { createNotificationServiceMock } from '../../helpers/mocks/notification.service.mock.js';
 import { createEventCreatedEventMock } from '../../helpers/factories/stream-event.factory.js';
-import { SocialEventMessagingType, WebsocketMessagingType } from '@volontariapp/messaging';
+import { SocialEventMessagingType, WebsocketMessagingType, EventEventMessagingType } from '@volontariapp/messaging';
 import { createMock } from '@volontariapp/testing';
 import type { Redis } from 'ioredis';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
+import { AppDataSource } from '../../../config/data-source.js';
+import { EventQueueModel } from '@volontariapp/database';
+import { Streams } from '@volontariapp/shared';
 
 describe('SocialEventCreatedPostProcessor (Integration)', () => {
   let postProcessor: SocialEventCreatedPostProcessor;
   let notificationServiceMock: jest.Mocked<NotificationService>;
 
+  beforeAll(async () => {
+    if (!AppDataSource.isInitialized) {
+      await AppDataSource.initialize();
+    }
+  });
+
+  afterAll(async () => {
+    if (AppDataSource.isInitialized) {
+      await AppDataSource.destroy();
+    }
+  });
+
   beforeEach(async () => {
+    const repo = AppDataSource.getRepository(EventQueueModel);
+    await repo.clear();
+
     notificationServiceMock = createNotificationServiceMock();
 
     const redisMock = createMock<Redis>();
@@ -46,9 +64,12 @@ describe('SocialEventCreatedPostProcessor (Integration)', () => {
 
   describe('processEvents', () => {
     it('should broadcast and notify organizer on EVENT_SOCIAL_CREATED event', async () => {
-      const payloadOverrides = { eventId: 'test-event-123', organizerId: 'organizer-456' };
+      const organizerId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+      const payloadOverrides = { eventId: 'test-event-123', organizerId };
       const event = createEventCreatedEventMock(payloadOverrides);
-      event.emitterId = 'organizer-456';
+      event.emitterId = organizerId;
+      event.correlationId = 'b0f0a0c0-9c0b-4ef8-bb6d-6bb9bd380a22';
+      event.traceId = 'c0f0a0c0-9c0b-4ef8-bb6d-6bb9bd380a33';
       const messageId = 'msg-123';
 
       const broadcastExceptSpy = jest.spyOn(notificationServiceMock, 'broadcastExcept');
@@ -57,21 +78,38 @@ describe('SocialEventCreatedPostProcessor (Integration)', () => {
       await postProcessor['processEvents']([{ event, messageId } as never]);
 
       expect(broadcastExceptSpy).toHaveBeenCalledWith(
-        'organizer-456',
+        organizerId,
         WebsocketMessagingType.EVENT_CREATED,
         event.payload.after,
       );
       expect(notifyUserSpy).toHaveBeenCalledWith(
-        'organizer-456',
+        organizerId,
         WebsocketMessagingType.EVENT_CREATED,
         event.payload.after,
       );
+
+      const repo = AppDataSource.getRepository(EventQueueModel);
+      const events = await repo.find();
+      expect(events).toHaveLength(1);
+      const inserted = events[0];
+      expect(inserted.type).toBe(EventEventMessagingType.EVENT_CREATION_SUCCESSFULL);
+      expect(inserted.emitter).toBe('ws-service');
+      expect(inserted.emitterId).toBe(organizerId);
+      expect(inserted.version).toBe(1);
+      expect(inserted.payload).toEqual({
+        after: {
+          eventId: 'test-event-123',
+          userId: organizerId,
+        },
+      });
     });
 
     it('should broadcast but not notify if emitterId is missing', async () => {
       const payloadOverrides = { eventId: 'test-event-123' };
       const event = createEventCreatedEventMock(payloadOverrides);
       event.emitterId = undefined as unknown as string;
+      event.correlationId = 'b0f0a0c0-9c0b-4ef8-bb6d-6bb9bd380a22';
+      event.traceId = 'c0f0a0c0-9c0b-4ef8-bb6d-6bb9bd380a33';
       const messageId = 'msg-123';
 
       const broadcastSpy = jest.spyOn(notificationServiceMock, 'broadcast');
@@ -84,6 +122,20 @@ describe('SocialEventCreatedPostProcessor (Integration)', () => {
         event.payload.after,
       );
       expect(notifyUserSpy).not.toHaveBeenCalled();
+
+      const repo = AppDataSource.getRepository(EventQueueModel);
+      const events = await repo.find();
+      expect(events).toHaveLength(1);
+      const inserted = events[0];
+      expect(inserted.type).toBe(EventEventMessagingType.EVENT_CREATION_SUCCESSFULL);
+      expect(inserted.emitter).toBe('ws-service');
+      expect(inserted.emitterId).toBe('00000000-0000-0000-0000-000000000000');
+      expect(inserted.version).toBe(1);
+      expect(inserted.payload).toEqual({
+        after: {
+          eventId: 'test-event-123',
+        },
+      });
     });
   });
 
