@@ -11,7 +11,6 @@ import type { Redis } from 'ioredis';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import { AppDataSource } from '../../../config/data-source.js';
 import { EventQueueModel } from '@volontariapp/database';
-import { Streams } from '@volontariapp/shared';
 
 describe('SocialEventCreatedPostProcessor (Integration)', () => {
   let postProcessor: SocialEventCreatedPostProcessor;
