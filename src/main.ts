@@ -10,6 +10,8 @@ import { CustomConfig } from './config/custom-config.js';
 import { Logger } from '@volontariapp/logger';
 import { RedisIoAdapter } from './adapters/redis-io.adapter.js';
 
+import { AppDataSource } from './config/data-source.js';
+
 function resolveConfigDirectory(): string {
   const currentFileDir = dirname(fileURLToPath(import.meta.url));
   const repositoryRootDir = join(currentFileDir, '..');
@@ -27,6 +29,9 @@ async function bootstrap() {
     context: 'WS-SERVICE',
     format: appConfig.logger.format,
   });
+
+  await AppDataSource.initialize();
+  logger.info('PostgreSQL database connection initialized successfully.');
 
   const app = await NestFactory.create(AppModule.register(appConfig), {
     logger,

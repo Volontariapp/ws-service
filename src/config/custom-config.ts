@@ -1,4 +1,4 @@
-import { BaseConfig, RedisConfig } from '@volontariapp/config';
+import { BaseConfig, RedisConfig, PostgresConfig } from '@volontariapp/config';
 import { Type } from 'class-transformer';
 import { IsDefined, IsNumber, IsString, ValidateNested } from 'class-validator';
 
@@ -39,6 +39,11 @@ export class WsAuthConfig {
 }
 
 export class CustomConfig extends BaseConfig {
+  @IsDefined()
+  @ValidateNested()
+  @Type(() => PostgresConfig)
+  db!: PostgresConfig;
+
   @IsDefined()
   @ValidateNested()
   @Type(() => RedisConfig)
