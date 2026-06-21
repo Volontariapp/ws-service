@@ -9,10 +9,38 @@ on:
 
 jobs:
   ci:
-    uses: Volontariapp/ci-tools/.github/workflows/service-ci.yml@main
-    with:
-      service-name: ws-service
-    secrets: inherit
+    name: Build & Test (ws-service)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ORG_REPO_TOKEN }}
+
+      - name: Setup Node & Yarn
+        uses: Volontariapp/ci-tools/.github/actions/setup-node-yarn@main
+        with:
+          node-version: "24.14.0"
+          cache: "yarn"
+
+      - name: Install Dependencies
+        run: yarn install --immutable
+
+      - name: Start Databases
+        run: |
+          cd ci-tools
+          docker compose up -d postgres-ws redis redis-ws-service --wait
+
+      - name: Run Migrations
+        run: |
+          yarn migration:run:test
+
+      - name: Check Build
+        run: yarn build
+
+      - name: Run Tests
+        run: yarn test
 
   ci-docker:
     needs: ci
