@@ -79,7 +79,7 @@ export class SocialEventCreatedPostProcessor extends BatchPostProcessor<SocialEv
           },
           targetServices: [Streams.EVENT_SUCCESSFULLY_CREATED],
         });
-        this.logger.info('Feedback event added to database event_queue', {
+        this.logger.info('Feedback event added to database event_queue!', {
           eventId,
           type: EventEventMessagingType.EVENT_CREATION_SUCCESSFULL,
         });
