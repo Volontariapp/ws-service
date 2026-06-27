@@ -42,5 +42,13 @@
     "maxRetries": 3,
     "retryDelayMs": 1000
   },
+  "scatterGather": {
+    "aggregations": [
+      {
+        "trigger": "EVENT_CREATED",
+        "expects": ["GEOCODED_SUCCESS", "SOCIAL_EVENT_CREATED"]
+      }
+    ]
+  },
   "port": 3005
 }

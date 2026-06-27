@@ -3,9 +3,8 @@ import { Injectable } from '@nestjs/common';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
 import {
-  SocialEventMessagingType,
-  WebsocketMessagingType,
   EventEventMessagingType,
+  WebsocketMessagingType,
   IEventCreatedWebsocketPayload,
 } from '@volontariapp/messaging';
 import { NotificationService } from '../../gateways/notification.service.js';
@@ -16,7 +15,7 @@ import { AppDataSource } from '../../config/data-source.js';
 import { Streams } from '@volontariapp/shared';
 
 @Injectable()
-export class SocialEventCreatedPostProcessor extends BatchPostProcessor<SocialEventMessagingType.EVENT_SOCIAL_CREATED> {
+export class GeocodedSuccessPostProcessor extends BatchPostProcessor<EventEventMessagingType.EVENT_GEOCODED> {
   constructor(
     redisClient: Redis,
     options: PostProcessorOptions,
@@ -26,16 +25,16 @@ export class SocialEventCreatedPostProcessor extends BatchPostProcessor<SocialEv
     super(redisClient, options);
   }
 
-  protected override shouldProcess(eventType: SocialEventMessagingType | string): boolean {
-    return eventType === SocialEventMessagingType.EVENT_SOCIAL_CREATED.toString();
+  protected override shouldProcess(eventType: EventEventMessagingType | string): boolean {
+    return eventType === EventEventMessagingType.EVENT_GEOCODED.toString();
   }
 
   protected async processEvents(
-    events: BatchEventItem<SocialEventMessagingType.EVENT_SOCIAL_CREATED>[],
+    events: BatchEventItem<EventEventMessagingType.EVENT_GEOCODED>[],
   ): Promise<void> {
     await Promise.all(
       events.map(async ({ event, messageId }) => {
-        this.logger.info('Processing social event created feedback event', {
+        this.logger.info('Processing geocoded feedback event', {
           messageId,
           eventId: event.payload.after.eventId,
           correlationId: event.correlationId,
@@ -44,7 +43,7 @@ export class SocialEventCreatedPostProcessor extends BatchPostProcessor<SocialEv
         // Mettre à jour l'état de l'agrégation
         const result = await this.gatherStateService.updateEventState<EventEventMessagingType.EVENT_CREATED>(
           event.correlationId,
-          'SOCIAL_EVENT_CREATED',
+          'GEOCODED_SUCCESS',
           EventStatus.SUCCESS,
         );
 

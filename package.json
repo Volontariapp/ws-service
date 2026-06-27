@@ -53,6 +53,7 @@
     "@volontariapp/config": "^3.2.0",
     "@volontariapp/contracts": "^4.2.6",
     "@volontariapp/contracts-nest": "^3.1.9",
+    "@volontariapp/database": "3.4.1",
     "@volontariapp/domain-event": "^3.6.6",
     "@volontariapp/errors": "^0.6.0",
     "@volontariapp/errors-nest": "^0.13.0",
@@ -134,6 +135,9 @@
   },
   "engines": {
     "node": ">=24.14.0"
+  },
+  "resolutions": {
+    "@volontariapp/database": "3.4.1"
   },
   "jest": {
     "moduleFileExtensions": [

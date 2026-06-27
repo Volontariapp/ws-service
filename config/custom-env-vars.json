@@ -46,5 +46,8 @@
     "maxRetries": "POST_PROCESSOR_MAX_RETRIES",
     "retryDelayMs": "POST_PROCESSOR_RETRY_DELAY_MS"
   },
+  "scatterGather": {
+    "aggregations": "SCATTER_GATHER_AGGREGATIONS"
+  },
   "port": "PORT"
 }

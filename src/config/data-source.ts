@@ -11,6 +11,7 @@ import {
   EventQueueModel,
   JobsOutboxModel,
   JobAuditModel,
+  GatherStateModel,
 } from '@volontariapp/database';
 
 databaseMapper.registerBidirectional(EventQueueModel, EventQueueEntity);
@@ -35,7 +36,7 @@ export const AppDataSource = new DataSource({
   password: appConfig.db.password,
   database: appConfig.db.database,
   ssl: appConfig.db.ssl ? { rejectUnauthorized: false } : false,
-  entities: [EventQueueModel, JobsOutboxModel, JobAuditModel],
+  entities: [EventQueueModel, JobsOutboxModel, JobAuditModel, GatherStateModel],
   synchronize: false,
   migrations: [
     join(dirname(fileURLToPath(import.meta.url)), '..', 'migrations', '**', '*.{ts,js}'),
