@@ -7,7 +7,7 @@ export const wsEventCreatedOptionsProvider = {
   provide: WS_EVENT_CREATED_POST_PROCESSOR_OPTIONS,
   useFactory: (appConfig: AppConfigService) => ({
     groupName: 'EventCreatedConsumer',
-    streamName: getEventStreamName(Streams.WS_EVENT_CREATED_FEEDBACK),
+    streamName: getEventStreamName(Streams.EVENT_CREATED),
     batchSize: appConfig.config.postProcessor.batchSize,
     blockTimeout: appConfig.config.postProcessor.blockTimeout,
     idempotencyTtlSeconds: appConfig.config.postProcessor.idempotencyTtlSeconds,

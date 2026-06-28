@@ -45,7 +45,7 @@
   "scatterGather": {
     "aggregations": [
       {
-        "trigger": "EVENT_CREATED",
+        "trigger": "event.created",
         "expects": ["GEOCODED_SUCCESS", "SOCIAL_EVENT_CREATED"]
       }
     ]
