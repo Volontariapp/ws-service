@@ -22,7 +22,7 @@ export class GatherStateService {
   ) {}
 
   /**
-   * Retourne la configuration d'agrégation associée à un trigger donné.
+   * Returns the aggregation configuration associated with a given trigger event.
    */
   getAggregationConfig(trigger: string) {
     const aggregations = this.configService.scatterGather?.aggregations || [];
@@ -36,8 +36,8 @@ export class GatherStateService {
   }
 
   /**
-   * Initialise l'état d'agrégation dans la base de données pour un correlationId donné.
-   * On stocke également le payload initial (metadata) pour pouvoir l'utiliser lors de la complétion.
+   * Initializes the aggregation state in the database for a given correlationId.
+   * Also stores the initial trigger payload (metadata) to be reused upon completion.
    */
   async initializeGatherState<TKey extends EventMessagingType>(
     correlationId: string,
@@ -46,7 +46,7 @@ export class GatherStateService {
   ): Promise<GatherStateEntity<TKey>> {
     const aggregation = this.getAggregationConfig(triggerEvent);
 
-    // Construire la liste des événements attendus
+    // Build the list of expected events
     const gatherEventsState: Record<string, GatherEventState> = {};
     for (const expectedType of aggregation.expects) {
       gatherEventsState[expectedType] = {
@@ -56,7 +56,7 @@ export class GatherStateService {
       };
     }
 
-    // Créer ou écraser l'état dans la table
+    // Create or overwrite the state in the table
     const existing = await this.gatherStateRepository.findOne({ correlationId });
     if (existing) {
       this.logger.log(
@@ -82,8 +82,8 @@ export class GatherStateService {
   }
 
   /**
-   * Met à jour le statut d'un événement attendu.
-   * Retourne un objet indiquant si l'agrégation est complète, et si oui, retourne les métadonnées et résultats.
+   * Updates the status of an expected event.
+   * Returns an object indicating if the aggregation is complete, and if so, returns the metadata and results.
    */
   async updateEventState<TKey extends EventMessagingType>(
     correlationId: string,
@@ -99,7 +99,7 @@ export class GatherStateService {
 
     const gatherEventsState = { ...gatherState.gatherEventsState };
 
-    // Vérifier si l'événement fait partie de l'agrégation
+    // Verify if the event is part of the aggregation
     if (!gatherEventsState[expectedEvent]) {
       this.logger.debug(
         `Event ${expectedEvent} is not expected for correlationId: ${correlationId}`,
@@ -107,7 +107,7 @@ export class GatherStateService {
       return { isComplete: false };
     }
 
-    // Mettre à jour l'événement attendu
+    // Update the expected event state
     gatherEventsState[expectedEvent] = {
       ...gatherEventsState[expectedEvent],
       status,
@@ -115,13 +115,13 @@ export class GatherStateService {
       errorReason,
     };
 
-    // Mettre à jour dans la base
+    // Save changes in the database
     await this.gatherStateRepository.update(gatherState.id, {
       correlationId: gatherState.correlationId,
       gatherEventsState,
     });
 
-    // Vérifier si tout est résolu (plus aucun PENDING)
+    // Check if all expected events are resolved (no longer PENDING)
     const aggregation = this.getAggregationConfig(gatherState.triggerEvent);
     if (!aggregation) {
       return { isComplete: false };

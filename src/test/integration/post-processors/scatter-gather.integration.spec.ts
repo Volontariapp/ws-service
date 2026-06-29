@@ -146,7 +146,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
     const broadcastExceptSpy = jest.spyOn(notificationServiceMock, 'broadcastExcept');
     const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
 
-    // === ÉTAPE 1: Réception de EVENT_CREATED ===
+    // === STEP 1: Reception of EVENT_CREATED ===
     const eventCreatedMsg: StreamEvent<IEventCreatedPayload> = {
       id: 'event-created-msg-id',
       type: EventEventMessagingType.EVENT_CREATED.toString(),
@@ -167,7 +167,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
 
     await eventCreatedProcessor['processEvents']([{ event: eventCreatedMsg, messageId: 'msg-1' } as any]);
 
-    // L'état d'agrégation doit être initialisé en base
+    // Aggregation state must be initialized in the database
     let gatherState = await gatherStateRepository.findOne({ correlationId });
     expect(gatherState).toBeDefined();
     expect(gatherState?.triggerEvent).toBe(EventEventMessagingType.EVENT_CREATED);
@@ -177,11 +177,11 @@ describe('Scatter-Gather Flow (Integration)', () => {
     expect(gatherState?.metadata?.traceId).toBe(traceId);
     expect((gatherState?.metadata?.payload as any).eventId).toBe(eventId);
 
-    // Pas de WebSocket ni d'Outbox pour le moment
+    // No WebSocket or Outbox for now
     expect(broadcastExceptSpy).not.toHaveBeenCalled();
     expect(notifyUserSpy).not.toHaveBeenCalled();
 
-    // === ÉTAPE 2: Réception de EVENT_GEOCODED ===
+    // === STEP 2: Reception of EVENT_GEOCODED ===
     const eventGeocodedMsg: StreamEvent<IEventGeocodedPayload> = {
       id: 'geocoded-msg-id',
       type: EventEventMessagingType.EVENT_GEOCODED.toString(),
@@ -201,17 +201,17 @@ describe('Scatter-Gather Flow (Integration)', () => {
 
     await geocodedProcessor['processEvents']([{ event: eventGeocodedMsg, messageId: 'msg-2' } as any]);
 
-    // L'état d'agrégation doit être mis à jour (GEOCODED_SUCCESS -> SUCCESS)
+    // Aggregation state must be updated (GEOCODED_SUCCESS -> SUCCESS)
     gatherState = await gatherStateRepository.findOne({ correlationId });
     expect(gatherState).toBeDefined();
     expect(gatherState?.gatherEventsState['GEOCODED_SUCCESS'].status).toBe(EventStatus.SUCCESS);
     expect(gatherState?.gatherEventsState['SOCIAL_EVENT_CREATED'].status).toBe(EventStatus.PENDING);
 
-    // Toujours pas de WebSocket ni d'Outbox
+    // Still no WebSocket or Outbox
     expect(broadcastExceptSpy).not.toHaveBeenCalled();
     expect(notifyUserSpy).not.toHaveBeenCalled();
 
-    // === ÉTAPE 3: Réception de EVENT_SOCIAL_CREATED ===
+    // === STEP 3: Reception of EVENT_SOCIAL_CREATED ===
     const eventSocialCreatedMsg: StreamEvent<IEventSocialCreatedPayload> = {
       id: 'social-created-msg-id',
       type: SocialEventMessagingType.EVENT_SOCIAL_CREATED.toString(),
@@ -231,11 +231,11 @@ describe('Scatter-Gather Flow (Integration)', () => {
 
     await socialCreatedProcessor['processEvents']([{ event: eventSocialCreatedMsg, messageId: 'msg-3' } as any]);
 
-    // L'état d'agrégation doit être supprimé de la base de données car terminé
+    // Aggregation state must be deleted from the database since it is completed
     gatherState = await gatherStateRepository.findOne({ correlationId });
     expect(gatherState).toBeNull();
 
-    // Les WebSockets doivent être envoyés
+    // WebSockets must be sent
     expect(broadcastExceptSpy).toHaveBeenCalledWith(
       emitterId,
       WebsocketMessagingType.EVENT_CREATED,
@@ -247,7 +247,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
       expect.objectContaining({ eventId, localisationName: 'Paris, France' }),
     );
 
-    // L'événement final de succès doit être enregistré dans l'Outbox
+    // The final success event must be saved in the Outbox
     const eventQueueRepo = AppDataSource.getRepository(EventQueueModel);
     const outboxEvents = await eventQueueRepo.find();
     expect(outboxEvents).toHaveLength(1);
