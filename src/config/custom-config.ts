@@ -1,6 +1,7 @@
 import { BaseConfig, RedisConfig, PostgresConfig } from '@volontariapp/config';
 import { Type } from 'class-transformer';
 import { IsDefined, IsNumber, IsString, ValidateNested, IsArray } from 'class-validator';
+import { EventMessagingType } from '@volontariapp/messaging';
 
 export class PostProcessorConfig {
   @IsDefined()
@@ -41,20 +42,20 @@ export class WsAuthConfig {
 export class AggregationConfig {
   @IsDefined()
   @IsString()
-  trigger!: string;
+  trigger!: EventMessagingType;
 
   @IsDefined()
   @IsArray()
   @IsString({ each: true })
-  expects!: string[];
+  expects!: EventMessagingType[];
 
   @IsDefined()
   @IsString()
-  successEvent!: string;
+  successEvent!: EventMessagingType;
 
   @IsDefined()
   @IsString()
-  failureEvent!: string;
+  failureEvent!: EventMessagingType;
 }
 
 export class ScatterGatherConfig {
