@@ -116,9 +116,18 @@ export abstract class BaseGatherPostProcessor<
       const eventId = triggerPayload?.eventId;
 
       const eventType = result.isSuccess ? aggregationConfig.successEvent : aggregationConfig.failureEvent;
-      const payloadAfter: Record<string, any> = result.isSuccess
-        ? { eventId, userId: result.metadata!.emitterId }
-        : { eventId, failedEvents: result.failedEvents };
+      let payloadAfter: Record<string, string | string[] | null>;
+      if (result.isSuccess) {
+        payloadAfter = {
+          eventId: eventId!,
+          userId: result.metadata!.emitterId ?? null,
+        };
+      } else {
+        payloadAfter = {
+          eventId: eventId!,
+          failedEvents: result.failedEvents ?? null,
+        };
+      }
 
       await transactionalEventQueueRepo.create({
         type: eventType,
@@ -127,7 +136,7 @@ export abstract class BaseGatherPostProcessor<
         traceId: result.metadata!.traceId,
         correlationId,
         version: 1,
-        payload: { before: undefined, after: payloadAfter as any },
+        payload: { before: undefined, after: payloadAfter },
         targetServices: result.isSuccess ? [Streams.EVENT_SUCCESSFULLY_CREATED] : [Streams.EVENT_JOB_OUTBOX_FAILURE],
       });
     });
