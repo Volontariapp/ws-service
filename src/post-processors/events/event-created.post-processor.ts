@@ -1,4 +1,4 @@
-import { BatchPostProcessor, type BatchEventItem } from '@volontariapp/post-processors';
+import { BaseGatherPostProcessor } from '../base-gather.post-processor.js';
 import { Injectable } from '@nestjs/common';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
@@ -6,41 +6,27 @@ import { EventEventMessagingType } from '@volontariapp/messaging';
 import { GatherStateService } from '../../core/services/gather-state.service.js';
 
 @Injectable()
-export class EventCreatedPostProcessor extends BatchPostProcessor<EventEventMessagingType.EVENT_CREATED> {
+export class EventCreatedPostProcessor extends BaseGatherPostProcessor<
+  EventEventMessagingType.EVENT_CREATED,
+  EventEventMessagingType.EVENT_CREATED
+> {
   constructor(
     redisClient: Redis,
     options: PostProcessorOptions,
-    private readonly gatherStateService: GatherStateService,
+    gatherStateService: GatherStateService,
   ) {
-    super(redisClient, options);
+    super(
+      redisClient,
+      options,
+      gatherStateService,
+      EventEventMessagingType.EVENT_CREATED,
+      true, // isCreator = true
+    );
   }
 
   protected override shouldProcess(eventType: EventEventMessagingType | string): boolean {
     return eventType === EventEventMessagingType.EVENT_CREATED.toString();
   }
 
-  protected async processEvents(
-    events: BatchEventItem<EventEventMessagingType.EVENT_CREATED>[],
-  ): Promise<void> {
-    await Promise.all(
-      events.map(async ({ event, messageId }) => {
-        this.logger.info('Initializing Scatter-Gather state for EVENT_CREATED', {
-          messageId,
-          eventId: event.payload.after.eventId,
-          correlationId: event.correlationId,
-        });
-
-        // Initialiser l'état du Scatter-Gather dans la base de données
-        await this.gatherStateService.initializeGatherState(
-          event.correlationId,
-          EventEventMessagingType.EVENT_CREATED,
-          {
-            emitterId: event.emitterId,
-            traceId: event.traceId,
-            payload: event.payload.after,
-          },
-        );
-      }),
-    );
-  }
+  protected override processGatherResult(): void {}
 }

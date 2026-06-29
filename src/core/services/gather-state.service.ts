@@ -4,6 +4,14 @@ import { EventStatus, GatherStateEntity, GatherEventState, GatherStateMetadata }
 import { AppConfigService } from '../../config/app-config.service.js';
 import { EventMessagingType } from '@volontariapp/messaging';
 
+export interface GatherUpdateResult<TKey extends EventMessagingType = EventMessagingType> {
+  isComplete: boolean;
+  isSuccess?: boolean;
+  failedEvents?: string[];
+  metadata?: GatherStateMetadata<TKey>;
+  gatherStateId?: string;
+}
+
 @Injectable()
 export class GatherStateService {
   private readonly logger = new Logger(GatherStateService.name);
@@ -14,6 +22,20 @@ export class GatherStateService {
   ) {}
 
   /**
+   * Retourne la configuration d'agrégation associée à un trigger donné.
+   */
+  getAggregationConfig(trigger: string) {
+    const aggregations = this.configService.scatterGather?.aggregations || [];
+    const aggregation = aggregations.find((agg) => agg.trigger === trigger);
+
+    if (!aggregation) {
+      this.logger.warn(`No aggregation configuration found for trigger event: ${trigger}`);
+      throw new Error(`No aggregation config for trigger: ${trigger}`);
+    }
+    return aggregation;
+  }
+
+  /**
    * Initialise l'état d'agrégation dans la base de données pour un correlationId donné.
    * On stocke également le payload initial (metadata) pour pouvoir l'utiliser lors de la complétion.
    */
@@ -22,16 +44,9 @@ export class GatherStateService {
     triggerEvent: TKey,
     metadata: GatherStateMetadata<TKey>,
   ): Promise<GatherStateEntity<TKey>> {
-    // 1. Trouver la config d'agrégation pour ce triggerEvent
-    const aggregations = this.configService.scatterGather?.aggregations || [];
-    const aggregation = aggregations.find((agg) => agg.trigger === triggerEvent);
+    const aggregation = this.getAggregationConfig(triggerEvent);
 
-    if (!aggregation) {
-      this.logger.warn(`No aggregation configuration found for trigger event: ${triggerEvent}`);
-      throw new Error(`No aggregation config for trigger: ${triggerEvent}`);
-    }
-
-    // 2. Construire la liste des événements attendus
+    // Construire la liste des événements attendus
     const gatherEventsState: Record<string, GatherEventState> = {};
     for (const expectedType of aggregation.expects) {
       gatherEventsState[expectedType] = {
@@ -41,7 +56,7 @@ export class GatherStateService {
       };
     }
 
-    // 3. Créer ou écraser l'état dans la table
+    // Créer ou écraser l'état dans la table
     const existing = await this.gatherStateRepository.findOne({ correlationId });
     if (existing) {
       this.logger.log(
@@ -55,7 +70,7 @@ export class GatherStateService {
       if (!updated) {
         throw new Error(`Failed to update gather state for correlationId: ${correlationId}`);
       }
-      return updated as unknown as GatherStateEntity<TKey>;
+      return updated as GatherStateEntity<TKey>;
     }
 
     return (await this.gatherStateRepository.create({
@@ -63,23 +78,20 @@ export class GatherStateService {
       triggerEvent,
       gatherEventsState,
       metadata,
-    })) as unknown as GatherStateEntity<TKey>;
+    })) as GatherStateEntity<TKey>;
   }
 
   /**
    * Met à jour le statut d'un événement attendu.
-   * Retourne un objet indiquant si l'agrégation est complète, et si oui, retourne les métadonnées de l'agrégation.
+   * Retourne un objet indiquant si l'agrégation est complète, et si oui, retourne les métadonnées et résultats.
    */
   async updateEventState<TKey extends EventMessagingType>(
     correlationId: string,
     expectedEvent: string,
     status: EventStatus,
     errorReason?: string,
-  ): Promise<{
-    isComplete: boolean;
-    metadata?: GatherStateMetadata<TKey>;
-  }> {
-    const gatherState = (await this.gatherStateRepository.findOne({ correlationId })) as unknown as GatherStateEntity<TKey> | null;
+  ): Promise<GatherUpdateResult<TKey>> {
+    const gatherState = (await this.gatherStateRepository.findOne({ correlationId })) as GatherStateEntity<TKey> | null;
     if (!gatherState) {
       this.logger.debug(`No active gather state found for correlationId: ${correlationId}`);
       return { isComplete: false };
@@ -109,24 +121,28 @@ export class GatherStateService {
       gatherEventsState,
     });
 
-    // Vérifier si tout est au statut SUCCESS
-    const aggregations = this.configService.scatterGather?.aggregations || [];
-    const aggregation = aggregations.find((agg) => agg.trigger === gatherState.triggerEvent);
+    // Vérifier si tout est résolu (plus aucun PENDING)
+    const aggregation = this.getAggregationConfig(gatherState.triggerEvent);
     if (!aggregation) {
       return { isComplete: false };
     }
 
-    const allSuccessful = aggregation.expects.every(
-      (expectedType) => gatherEventsState[expectedType]?.status === EventStatus.SUCCESS,
+    const isComplete = aggregation.expects.every(
+      (expectedType) => gatherEventsState[expectedType]?.status !== EventStatus.PENDING,
     );
 
-    if (allSuccessful) {
-      const metadata = gatherState.metadata;
-      // Supprimer l'état d'agrégation puisqu'elle est terminée
-      await this.gatherStateRepository.delete(gatherState.id);
+    if (isComplete) {
+      const failedEvents = aggregation.expects.filter(
+        (expectedType) => gatherEventsState[expectedType]?.status === EventStatus.FAILED,
+      );
+      const isSuccess = failedEvents.length === 0;
+
       return {
         isComplete: true,
-        metadata,
+        isSuccess,
+        failedEvents,
+        metadata: gatherState.metadata,
+        gatherStateId: gatherState.id,
       };
     }
 

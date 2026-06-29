@@ -79,6 +79,12 @@ describe('SocialEventCreatedPostProcessor (Integration)', () => {
 
     notificationServiceMock = createNotificationServiceMock();
     gatherStateServiceMock = createMock<GatherStateService>();
+    gatherStateServiceMock.getAggregationConfig.mockReturnValue({
+      trigger: 'event.created',
+      expects: ['GEOCODED_SUCCESS', 'SOCIAL_EVENT_CREATED'],
+      successEvent: 'event.creation_successfull',
+      failureEvent: 'event.creation_failed',
+    } as any);
 
     const redisMock = createMock<Redis>();
     const optionsMock = {
@@ -124,6 +130,8 @@ describe('SocialEventCreatedPostProcessor (Integration)', () => {
 
       gatherStateServiceMock.updateEventState.mockResolvedValue({
         isComplete: true,
+        isSuccess: true,
+        gatherStateId: 'b0f0a0c0-9c0b-4ef8-bb6d-6bb9bd380a22',
         metadata: {
           emitterId: organizerId,
           traceId: event.traceId,
@@ -140,6 +148,7 @@ describe('SocialEventCreatedPostProcessor (Integration)', () => {
         event.correlationId,
         'SOCIAL_EVENT_CREATED',
         EventStatus.SUCCESS,
+        undefined,
       );
 
       expect(broadcastExceptSpy).toHaveBeenCalledWith(
@@ -179,6 +188,8 @@ describe('SocialEventCreatedPostProcessor (Integration)', () => {
 
       gatherStateServiceMock.updateEventState.mockResolvedValue({
         isComplete: true,
+        isSuccess: true,
+        gatherStateId: 'b0f0a0c0-9c0b-4ef8-bb6d-6bb9bd380a22',
         metadata: {
           emitterId: undefined,
           traceId: event.traceId,

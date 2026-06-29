@@ -95,6 +95,8 @@ describe('Scatter-Gather Flow (Integration)', () => {
         {
           trigger: 'event.created',
           expects: ['GEOCODED_SUCCESS', 'SOCIAL_EVENT_CREATED'],
+          successEvent: 'event.creation_successfull',
+          failureEvent: 'event.creation_failed',
         },
       ],
     };

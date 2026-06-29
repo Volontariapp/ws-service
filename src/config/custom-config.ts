@@ -47,6 +47,14 @@ export class AggregationConfig {
   @IsArray()
   @IsString({ each: true })
   expects!: string[];
+
+  @IsDefined()
+  @IsString()
+  successEvent!: string;
+
+  @IsDefined()
+  @IsString()
+  failureEvent!: string;
 }
 
 export class ScatterGatherConfig {
