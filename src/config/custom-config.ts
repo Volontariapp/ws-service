@@ -1,6 +1,7 @@
 import { BaseConfig, RedisConfig, PostgresConfig } from '@volontariapp/config';
 import { Type } from 'class-transformer';
-import { IsDefined, IsNumber, IsString, ValidateNested } from 'class-validator';
+import { IsDefined, IsNumber, IsString, ValidateNested, IsArray } from 'class-validator';
+import { EventMessagingType } from '@volontariapp/messaging';
 
 export class PostProcessorConfig {
   @IsDefined()
@@ -38,6 +39,33 @@ export class WsAuthConfig {
   accessTokenPublicKeyPath!: string;
 }
 
+export class AggregationConfig {
+  @IsDefined()
+  @IsString()
+  trigger!: EventMessagingType;
+
+  @IsDefined()
+  @IsArray()
+  @IsString({ each: true })
+  expects!: EventMessagingType[];
+
+  @IsDefined()
+  @IsString()
+  successEvent!: EventMessagingType;
+
+  @IsDefined()
+  @IsString()
+  failureEvent!: EventMessagingType;
+}
+
+export class ScatterGatherConfig {
+  @IsDefined()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AggregationConfig)
+  aggregations!: AggregationConfig[];
+}
+
 export class CustomConfig extends BaseConfig {
   @IsDefined()
   @ValidateNested()
@@ -63,4 +91,9 @@ export class CustomConfig extends BaseConfig {
   @ValidateNested()
   @Type(() => WsAuthConfig)
   auth!: WsAuthConfig;
+
+  @IsDefined()
+  @ValidateNested()
+  @Type(() => ScatterGatherConfig)
+  scatterGather!: ScatterGatherConfig;
 }

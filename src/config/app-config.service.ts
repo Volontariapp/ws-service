@@ -18,4 +18,8 @@ export class AppConfigService {
   get db() {
     return this.config.db;
   }
+
+  get scatterGather() {
+    return this.config.scatterGather;
+  }
 }

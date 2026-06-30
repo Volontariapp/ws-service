@@ -3,7 +3,6 @@ import { Injectable } from '@nestjs/common';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
 import {
-  SocialEventMessagingType,
   EventEventMessagingType,
 } from '@volontariapp/messaging';
 import { EventStatus } from '@volontariapp/database';
@@ -11,8 +10,8 @@ import { NotificationService } from '../../gateways/notification.service.js';
 import { GatherStateService } from '../../core/services/gather-state.service.js';
 
 @Injectable()
-export class SocialEventCreatedPostProcessor extends BaseWebSocketGatherPostProcessor<
-  SocialEventMessagingType.EVENT_SOCIAL_CREATED,
+export class GeocodedSuccessPostProcessor extends BaseWebSocketGatherPostProcessor<
+  EventEventMessagingType.EVENT_GEOCODED,
   EventEventMessagingType.EVENT_CREATED
 > {
 
@@ -28,12 +27,12 @@ export class SocialEventCreatedPostProcessor extends BaseWebSocketGatherPostProc
       gatherStateService,
       notificationService,
       EventEventMessagingType.EVENT_CREATED,
-      'SOCIAL_EVENT_CREATED',
+      'GEOCODED_SUCCESS',
       EventStatus.SUCCESS,
     );
   }
 
-  protected override shouldProcess(eventType: SocialEventMessagingType | string): boolean {
-    return eventType === SocialEventMessagingType.EVENT_SOCIAL_CREATED.toString();
+  protected override shouldProcess(eventType: EventEventMessagingType | string): boolean {
+    return eventType === EventEventMessagingType.EVENT_GEOCODED.toString();
   }
 }

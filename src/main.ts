@@ -46,7 +46,7 @@ async function bootstrap() {
   });
 
   const redisIoAdapter = new RedisIoAdapter(app);
-  await redisIoAdapter.connectToRedis(configService.redis);
+  await redisIoAdapter.connectToRedis(configService.globalRedis);
   app.useWebSocketAdapter(redisIoAdapter);
 
   app.enableShutdownHooks();

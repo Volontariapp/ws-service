@@ -23,15 +23,18 @@ import { createMock } from '@volontariapp/testing';
 import type { Redis } from 'ioredis';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import { AppDataSource } from '../../../config/data-source.js';
-import { EventQueueModel } from '@volontariapp/database';
+import { EventQueueModel, EventStatus } from '@volontariapp/database';
+import { GatherStateService } from '../../../core/services/gather-state.service.js';
 
 describe('SocialEventCreatedPostProcessor (Integration)', () => {
   let postProcessor: SocialEventCreatedPostProcessor;
   let notificationServiceMock: jest.Mocked<NotificationService>;
+  let gatherStateServiceMock: jest.Mocked<GatherStateService>;
 
   beforeAll(async () => {
     if (!AppDataSource.isInitialized) {
       const opts = AppDataSource.options as any;
+      opts.migrations = [];
       try {
         if (opts.type === 'postgres' && opts.host === 'localhost') {
           opts.host = '127.0.0.1';
@@ -75,6 +78,13 @@ describe('SocialEventCreatedPostProcessor (Integration)', () => {
     await repo.clear();
 
     notificationServiceMock = createNotificationServiceMock();
+    gatherStateServiceMock = createMock<GatherStateService>();
+    gatherStateServiceMock.getAggregationConfig.mockReturnValue({
+      trigger: 'event.created',
+      expects: ['GEOCODED_SUCCESS', 'SOCIAL_EVENT_CREATED'],
+      successEvent: 'event.creation_successfull',
+      failureEvent: 'event.creation_failed',
+    } as any);
 
     const redisMock = createMock<Redis>();
     const optionsMock = {
@@ -91,7 +101,12 @@ describe('SocialEventCreatedPostProcessor (Integration)', () => {
         {
           provide: SocialEventCreatedPostProcessor,
           useFactory: () =>
-            new SocialEventCreatedPostProcessor(redisMock, optionsMock, notificationServiceMock),
+            new SocialEventCreatedPostProcessor(
+              redisMock,
+              optionsMock,
+              notificationServiceMock,
+              gatherStateServiceMock,
+            ),
         },
       ],
     }).compile();
@@ -113,10 +128,28 @@ describe('SocialEventCreatedPostProcessor (Integration)', () => {
       event.traceId = 'c0f0a0c0-9c0b-4ef8-bb6d-6bb9bd380a33';
       const messageId = 'msg-123';
 
+      gatherStateServiceMock.updateEventState.mockResolvedValue({
+        isComplete: true,
+        isSuccess: true,
+        gatherStateId: 'b0f0a0c0-9c0b-4ef8-bb6d-6bb9bd380a22',
+        metadata: {
+          emitterId: organizerId,
+          traceId: event.traceId,
+          payload: event.payload.after,
+        },
+      });
+
       const broadcastExceptSpy = jest.spyOn(notificationServiceMock, 'broadcastExcept');
       const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
 
       await postProcessor['processEvents']([{ event, messageId } as never]);
+
+      expect(gatherStateServiceMock.updateEventState).toHaveBeenCalledWith(
+        event.correlationId,
+        'SOCIAL_EVENT_CREATED',
+        EventStatus.SUCCESS,
+        undefined,
+      );
 
       expect(broadcastExceptSpy).toHaveBeenCalledWith(
         organizerId,
@@ -152,6 +185,17 @@ describe('SocialEventCreatedPostProcessor (Integration)', () => {
       event.correlationId = 'b0f0a0c0-9c0b-4ef8-bb6d-6bb9bd380a22';
       event.traceId = 'c0f0a0c0-9c0b-4ef8-bb6d-6bb9bd380a33';
       const messageId = 'msg-123';
+
+      gatherStateServiceMock.updateEventState.mockResolvedValue({
+        isComplete: true,
+        isSuccess: true,
+        gatherStateId: 'b0f0a0c0-9c0b-4ef8-bb6d-6bb9bd380a22',
+        metadata: {
+          emitterId: undefined,
+          traceId: event.traceId,
+          payload: event.payload.after,
+        },
+      });
 
       const broadcastSpy = jest.spyOn(notificationServiceMock, 'broadcast');
       const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
