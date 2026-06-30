@@ -12,7 +12,6 @@ import { AppDataSource } from '../config/data-source.js';
 import { GatherStateRepository } from '../core/repositories/gather-state.repository.js';
 import {
   EventMessagingType,
-  EventRegistry,
 } from '@volontariapp/messaging';
 import { GatherStateService, type GatherUpdateResult } from '../core/services/gather-state.service.js';
 import { Streams } from '@volontariapp/shared';
@@ -58,7 +57,7 @@ export abstract class BaseGatherPostProcessor<
             {
               emitterId: event.emitterId,
               traceId: event.traceId,
-              payload: event.payload.after as EventRegistry[TTrigger],
+              payload: event.payload.after as any,
             },
           );
         } else {

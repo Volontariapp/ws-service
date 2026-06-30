@@ -3,7 +3,6 @@ import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
 import {
   EventMessagingType,
-  WebsocketMessagingType,
   WebsocketEventRegistry,
   getWsEventForEvent,
 } from '@volontariapp/messaging';
