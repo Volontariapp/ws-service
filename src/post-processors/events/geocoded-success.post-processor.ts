@@ -4,7 +4,6 @@ import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
 import {
   EventEventMessagingType,
-  WebsocketMessagingType,
 } from '@volontariapp/messaging';
 import { EventStatus } from '@volontariapp/database';
 import { NotificationService } from '../../gateways/notification.service.js';
@@ -15,8 +14,6 @@ export class GeocodedSuccessPostProcessor extends BaseWebSocketGatherPostProcess
   EventEventMessagingType.EVENT_GEOCODED,
   EventEventMessagingType.EVENT_CREATED
 > {
-  protected override readonly wsSuccessType = WebsocketMessagingType.EVENT_CREATED;
-  protected override readonly wsFailureType = WebsocketMessagingType.EVENT_CREATION_FAILED;
 
   constructor(
     redisClient: Redis,

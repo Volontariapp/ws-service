@@ -4,7 +4,6 @@ import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
 import {
   SocialEventMessagingType,
-  WebsocketMessagingType,
   EventEventMessagingType,
 } from '@volontariapp/messaging';
 import { EventStatus } from '@volontariapp/database';
@@ -16,8 +15,6 @@ export class SocialEventCreatedPostProcessor extends BaseWebSocketGatherPostProc
   SocialEventMessagingType.EVENT_SOCIAL_CREATED,
   EventEventMessagingType.EVENT_CREATED
 > {
-  protected override readonly wsSuccessType = WebsocketMessagingType.EVENT_CREATED;
-  protected override readonly wsFailureType = WebsocketMessagingType.EVENT_CREATION_FAILED;
 
   constructor(
     redisClient: Redis,

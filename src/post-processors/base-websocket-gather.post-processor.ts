@@ -4,6 +4,8 @@ import type { Redis } from 'ioredis';
 import {
   EventMessagingType,
   WebsocketMessagingType,
+  WebsocketEventRegistry,
+  getWsEventForEvent,
 } from '@volontariapp/messaging';
 import { EventStatus, GatherStateMetadata } from '@volontariapp/database';
 import { NotificationService } from '../gateways/notification.service.js';
@@ -13,9 +15,6 @@ export abstract class BaseWebSocketGatherPostProcessor<
   TEvent extends EventMessagingType,
   TTrigger extends EventMessagingType = EventMessagingType
 > extends BaseGatherPostProcessor<TEvent, TTrigger> {
-  protected abstract readonly wsSuccessType: WebsocketMessagingType;
-  protected abstract readonly wsFailureType: WebsocketMessagingType;
-
   constructor(
     redisClient: Redis,
     options: PostProcessorOptions,
@@ -32,26 +31,30 @@ export abstract class BaseWebSocketGatherPostProcessor<
     metadata: GatherStateMetadata<TTrigger>,
     result: GatherUpdateResult<TTrigger>
   ): Promise<void> {
-    const wsType = result.isSuccess ? this.wsSuccessType : this.wsFailureType;
+    const aggregationConfig = this.gatherStateService.getAggregationConfig(this.triggerEvent);
+    const eventType = result.isSuccess ? aggregationConfig.successEvent : aggregationConfig.failureEvent;
+    const wsType = getWsEventForEvent(eventType);
+
+    const triggerPayload = metadata.payload as { eventId: string };
     const wsPayload = result.isSuccess
       ? metadata.payload
-      : { eventId: (metadata.payload as any)!.eventId, failedEvents: result.failedEvents };
+      : { eventId: triggerPayload.eventId, failedEvents: result.failedEvents };
 
     if (metadata.emitterId) {
       if (result.isSuccess) {
         this.notificationService.broadcastExcept(
           metadata.emitterId,
           wsType,
-          metadata.payload as any,
+          wsPayload as WebsocketEventRegistry[typeof wsType],
         );
       }
       await this.notificationService.notifyUser(
         metadata.emitterId,
         wsType,
-        wsPayload as any,
+        wsPayload as WebsocketEventRegistry[typeof wsType],
       );
     } else {
-      this.notificationService.broadcast(wsType, wsPayload as any);
+      this.notificationService.broadcast(wsType, wsPayload as WebsocketEventRegistry[typeof wsType]);
     }
   }
 }
