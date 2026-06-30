@@ -136,9 +136,6 @@
   "engines": {
     "node": ">=24.14.0"
   },
-  "resolutions": {
-    "@volontariapp/database": "3.4.1"
-  },
   "jest": {
     "moduleFileExtensions": [
       "js",
