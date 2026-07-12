@@ -42,6 +42,16 @@ jobs:
       - name: Run Tests
         run: yarn test
 
+  validate-versions:
+    name: Validate Versions (ws-service)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Check for temporary versions
+        uses: Volontariapp/ci-tools/.github/actions/validate-package-versions@main
+
   ci-docker:
     needs: ci
     permissions:
@@ -55,7 +65,7 @@ jobs:
   repo-deploy-push:
     name: Deploy Repo Submodule Push (ws-service)
     runs-on: ubuntu-latest
-    needs: [ci, ci-docker]
+    needs: [ci, ci-docker, validate-versions]
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Update Deploy Submodule and Images
