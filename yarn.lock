@@ -11974,7 +11974,7 @@ __metadata:
     "@volontariapp/health-check": "npm:^1.0.4"
     "@volontariapp/health-check-nest": "npm:^0.1.35"
     "@volontariapp/logger": "npm:^0.2.5"
-    "@volontariapp/messaging": "npm:2.11.0-snap-8f4cd08"
+    "@volontariapp/messaging": "npm:^2.11.0"
     "@volontariapp/monitoring": "npm:^2.1.5"
     "@volontariapp/post-processors": "npm:^3.2.7"
     "@volontariapp/shared": "npm:^0.8.0"
