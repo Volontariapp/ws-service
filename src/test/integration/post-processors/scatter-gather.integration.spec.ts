@@ -90,16 +90,18 @@ describe('Scatter-Gather Flow (Integration)', () => {
 
     // Configuration mock pour le service config
     const appConfigMock = createMock<AppConfigService>();
-    (appConfigMock as any).scatterGather = {
-      aggregations: [
-        {
-          trigger: 'event.created',
-          expects: ['GEOCODED_SUCCESS', 'SOCIAL_EVENT_CREATED'],
-          successEvent: 'event.creation_successfull',
-          failureEvent: 'event.creation_failed',
-        },
-      ],
-    };
+    Object.defineProperty(appConfigMock, 'scatterGather', {
+      get: () => ({
+        aggregations: [
+          {
+            trigger: 'event.created',
+            expects: ['GEOCODED_SUCCESS', 'SOCIAL_EVENT_CREATED'],
+            successEvent: 'event.creation_successfull',
+            failureEvent: 'event.creation_failed',
+          },
+        ],
+      }),
+    });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

@@ -49,6 +49,12 @@
         "expects": ["GEOCODED_SUCCESS", "SOCIAL_EVENT_CREATED"],
         "successEvent": "event.creation_successfull",
         "failureEvent": "event.creation_failed"
+      },
+      {
+        "trigger": "event.deleted",
+        "expects": ["social_event.deleted_success", "post_event.deleted_success"],
+        "successEvent": "event.deletion_successfull",
+        "failureEvent": "event.deletion_failed"
       }
     ]
   },
