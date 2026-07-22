@@ -4381,13 +4381,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/messaging@npm:2.11.0-snap-8f4cd08":
-  version: 2.11.0-snap-8f4cd08
-  resolution: "@volontariapp/messaging@npm:2.11.0-snap-8f4cd08"
+"@volontariapp/messaging@npm:2.11.0":
+  version: 2.11.0
+  resolution: "@volontariapp/messaging@npm:2.11.0"
   dependencies:
     "@volontariapp/contracts": "npm:4.3.4"
     "@volontariapp/shared": "npm:0.8.1"
-  checksum: 10c0/43d4ce3e20703ae9696dfb126c2fd65b2804f39074784e047d67a108a0638e5d483244bb96d928f377dde1da4887c97a8f7d72ce867e28992fd9dcfda45ea41a
+  checksum: 10c0/4ff1ddd288e1a9426f1bb506f53c9ee2b099d631d2710da04581d4998373b849618d3f04adaacff4e3f422844f32ed129d1f492b79d8a445562ae102ceec7aa4
   languageName: node
   linkType: hard
 

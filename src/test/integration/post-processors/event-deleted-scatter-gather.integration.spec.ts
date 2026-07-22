@@ -27,7 +27,6 @@ import {
   ISocialEventDeletedSuccessPayload,
   ISocialEventDeletedFailedPayload,
   IPostEventDeletedSuccessPayload,
-  IPostEventDeletedFailedPayload,
 } from '@volontariapp/messaging';
 import { createMock } from '@volontariapp/testing';
 import type { Redis } from 'ioredis';
@@ -43,7 +42,6 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
   let socialSuccessProcessor: SocialEventDeletedSuccessPostProcessor;
   let socialFailedProcessor: SocialEventDeletedFailedPostProcessor;
   let postSuccessProcessor: PostEventDeletedSuccessPostProcessor;
-  let postFailedProcessor: PostEventDeletedFailedPostProcessor;
   let notificationServiceMock: jest.Mocked<NotificationService>;
   let gatherStateRepository: GatherStateRepository;
 
@@ -152,7 +150,6 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
     socialSuccessProcessor = module.get<SocialEventDeletedSuccessPostProcessor>(SocialEventDeletedSuccessPostProcessor);
     socialFailedProcessor = module.get<SocialEventDeletedFailedPostProcessor>(SocialEventDeletedFailedPostProcessor);
     postSuccessProcessor = module.get<PostEventDeletedSuccessPostProcessor>(PostEventDeletedSuccessPostProcessor);
-    postFailedProcessor = module.get<PostEventDeletedFailedPostProcessor>(PostEventDeletedFailedPostProcessor);
   });
 
   afterEach(() => {
@@ -276,7 +273,6 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
     const emitterId = 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33';
     const eventId = 'event-789';
 
-    const broadcastSpy = jest.spyOn(notificationServiceMock, 'broadcast');
     const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
 
     // === STEP 1: EVENT_DELETED ===
