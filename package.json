@@ -7,6 +7,9 @@
   "private": true,
   "license": "MIT",
   "packageManager": "yarn@4.12.0",
+  "resolutions": {
+    "@volontariapp/messaging": "2.11.0-snap-8f4cd08"
+  },
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -61,7 +64,7 @@
     "@volontariapp/health-check": "^1.0.4",
     "@volontariapp/health-check-nest": "^0.1.35",
     "@volontariapp/logger": "^0.2.5",
-    "@volontariapp/messaging": "^2.10.0",
+    "@volontariapp/messaging": "2.11.0-snap-8f4cd08",
     "@volontariapp/monitoring": "^2.1.5",
     "@volontariapp/post-processors": "^3.2.7",
     "@volontariapp/shared": "^0.8.0",
@@ -97,7 +100,7 @@
     "@volontariapp/health-check": "^1.0.4",
     "@volontariapp/health-check-nest": "^0.1.35",
     "@volontariapp/logger": "^0.2.5",
-    "@volontariapp/messaging": "^2.10.0",
+    "@volontariapp/messaging": "2.11.0-snap-8f4cd08",
     "@volontariapp/monitoring": "^2.1.5",
     "@volontariapp/post-processors": "^3.2.7",
     "@volontariapp/shared": "^0.8.0",
