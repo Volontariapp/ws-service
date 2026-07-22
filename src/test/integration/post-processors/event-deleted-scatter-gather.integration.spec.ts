@@ -96,16 +96,18 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
     } as PostProcessorOptions;
 
     const appConfigMock = createMock<AppConfigService>();
-    (appConfigMock as any).scatterGather = {
-      aggregations: [
-        {
-          trigger: 'event.deleted',
-          expects: ['social_event.deleted_success', 'post_event.deleted_success'],
-          successEvent: 'event.deletion_successfull',
-          failureEvent: 'event.deletion_failed',
-        },
-      ],
-    };
+    Object.defineProperty(appConfigMock, 'scatterGather', {
+      get: () => ({
+        aggregations: [
+          {
+            trigger: 'event.deleted',
+            expects: ['social_event.deleted_success', 'post_event.deleted_success'],
+            successEvent: 'event.deletion_successfull',
+            failureEvent: 'event.deletion_failed',
+          },
+        ],
+      }),
+    });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
