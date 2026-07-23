@@ -15,3 +15,5 @@ export * from '../posts/options/ws-post-deleted.options.js';
 export * from '../posts/options/ws-post-deletion-failed.options.js';
 export * from '../jobs/options/ws-job-outbox-success.options.js';
 export * from '../jobs/options/ws-job-outbox-failed.options.js';
+export * from '../posts/options/ws-comment-created.options.js';
+export * from '../posts/options/ws-comment-deleted.options.js';

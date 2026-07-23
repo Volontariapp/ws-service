@@ -16,6 +16,8 @@ import { PostCreatedPostProcessor } from './posts/post-created.post-processor.js
 import { PostCreationFailedPostProcessor } from './posts/post-creation-failed.post-processor.js';
 import { PostDeletedPostProcessor } from './posts/post-deleted.post-processor.js';
 import { PostDeletionFailedPostProcessor } from './posts/post-deletion-failed.post-processor.js';
+import { CommentCreatedPostProcessor } from './posts/comment-created.post-processor.js';
+import { CommentDeletedPostProcessor } from './posts/comment-deleted.post-processor.js';
 import { JobOutboxSuccessPostProcessor } from './jobs/job-outbox-success.post-processor.js';
 import { JobOutboxFailedPostProcessor } from './jobs/job-outbox-failed.post-processor.js';
 import {
@@ -33,6 +35,8 @@ import {
   WS_POST_CREATION_FAILED_POST_PROCESSOR_OPTIONS,
   WS_POST_DELETED_POST_PROCESSOR_OPTIONS,
   WS_POST_DELETION_FAILED_POST_PROCESSOR_OPTIONS,
+  WS_COMMENT_CREATED_POST_PROCESSOR_OPTIONS,
+  WS_COMMENT_DELETED_POST_PROCESSOR_OPTIONS,
   WS_JOB_OUTBOX_SUCCESS_POST_PROCESSOR_OPTIONS,
   WS_JOB_OUTBOX_FAILED_POST_PROCESSOR_OPTIONS,
   wsUserCreatedOptionsProvider,
@@ -49,6 +53,8 @@ import {
   wsPostCreationFailedOptionsProvider,
   wsPostDeletedOptionsProvider,
   wsPostDeletionFailedOptionsProvider,
+  wsCommentCreatedOptionsProvider,
+  wsCommentDeletedOptionsProvider,
   wsJobOutboxSuccessOptionsProvider,
   wsJobOutboxFailedOptionsProvider,
 } from './options/index.js';
@@ -78,6 +84,8 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
     wsPostCreationFailedOptionsProvider,
     wsPostDeletedOptionsProvider,
     wsPostDeletionFailedOptionsProvider,
+    wsCommentCreatedOptionsProvider,
+    wsCommentDeletedOptionsProvider,
     wsJobOutboxSuccessOptionsProvider,
     wsJobOutboxFailedOptionsProvider,
     {
@@ -153,11 +161,7 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         void postProcessor.start();
         return postProcessor;
       },
-      inject: [
-        GLOBAL_REDIS_PROVIDER,
-        WS_EVENT_CREATED_POST_PROCESSOR_OPTIONS,
-        GatherStateService,
-      ],
+      inject: [GLOBAL_REDIS_PROVIDER, WS_EVENT_CREATED_POST_PROCESSOR_OPTIONS, GatherStateService],
     },
     {
       provide: GeocodedSuccessPostProcessor,
@@ -275,6 +279,50 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
       ],
     },
     {
+      provide: CommentCreatedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new CommentCreatedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_COMMENT_CREATED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+      ],
+    },
+    {
+      provide: CommentDeletedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new CommentDeletedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_COMMENT_DELETED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+      ],
+    },
+    {
       provide: JobOutboxSuccessPostProcessor,
       useFactory: async (
         redisProvider: RedisProvider,
@@ -334,11 +382,7 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         void postProcessor.start();
         return postProcessor;
       },
-      inject: [
-        GLOBAL_REDIS_PROVIDER,
-        WS_EVENT_DELETED_POST_PROCESSOR_OPTIONS,
-        GatherStateService,
-      ],
+      inject: [GLOBAL_REDIS_PROVIDER, WS_EVENT_DELETED_POST_PROCESSOR_OPTIONS, GatherStateService],
     },
     {
       provide: SocialEventDeletedSuccessPostProcessor,
