@@ -1,6 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GatherStateRepository } from '../repositories/gather-state.repository.js';
-import { EventStatus, GatherStateEntity, GatherEventState, GatherStateMetadata } from '@volontariapp/database';
+import {
+  EventStatus,
+  GatherStateEntity,
+  GatherEventState,
+  GatherStateMetadata,
+} from '@volontariapp/database';
 import { AppConfigService } from '../../config/app-config.service.js';
 import { EventMessagingType } from '@volontariapp/messaging';
 
@@ -25,7 +30,7 @@ export class GatherStateService {
    * Returns the aggregation configuration associated with a given trigger event.
    */
   getAggregationConfig(trigger: string) {
-    const aggregations = this.configService.scatterGather?.aggregations || [];
+    const aggregations = this.configService.scatterGather.aggregations || [];
     const aggregation = aggregations.find((agg) => agg.trigger === trigger);
 
     if (!aggregation) {
@@ -91,7 +96,9 @@ export class GatherStateService {
     status: EventStatus,
     errorReason?: string,
   ): Promise<GatherUpdateResult<TKey>> {
-    const gatherState = (await this.gatherStateRepository.findOne({ correlationId })) as GatherStateEntity<TKey> | null;
+    const gatherState = (await this.gatherStateRepository.findOne({
+      correlationId,
+    })) as GatherStateEntity<TKey> | null;
     if (!gatherState) {
       this.logger.debug(`No active gather state found for correlationId: ${correlationId}`);
       return { isComplete: false };
@@ -128,12 +135,12 @@ export class GatherStateService {
     }
 
     const isComplete = aggregation.expects.every(
-      (expectedType) => gatherEventsState[expectedType]?.status !== EventStatus.PENDING,
+      (expectedType) => gatherEventsState[expectedType].status !== EventStatus.PENDING,
     );
 
     if (isComplete) {
       const failedEvents = aggregation.expects.filter(
-        (expectedType) => gatherEventsState[expectedType]?.status === EventStatus.FAILED,
+        (expectedType) => gatherEventsState[expectedType].status === EventStatus.FAILED,
       );
       const isSuccess = failedEvents.length === 0;
 

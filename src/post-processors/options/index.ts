@@ -17,3 +17,5 @@ export * from '../jobs/options/ws-job-outbox-success.options.js';
 export * from '../jobs/options/ws-job-outbox-failed.options.js';
 export * from '../posts/options/ws-comment-created.options.js';
 export * from '../posts/options/ws-comment-deleted.options.js';
+export * from '../posts/options/ws-post-liked.options.js';
+export * from '../posts/options/ws-post-unliked.options.js';

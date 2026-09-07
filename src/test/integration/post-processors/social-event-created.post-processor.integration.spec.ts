@@ -24,7 +24,7 @@ import type { Redis } from 'ioredis';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import { AppDataSource } from '../../../config/data-source.js';
 import { EventQueueModel, EventStatus } from '@volontariapp/database';
-import { GatherStateService } from '../../../core/services/gather-state.service.js';
+import type { GatherStateService } from '../../../core/services/gather-state.service.js';
 
 describe('SocialEventCreatedPostProcessor (Integration)', () => {
   let postProcessor: SocialEventCreatedPostProcessor;

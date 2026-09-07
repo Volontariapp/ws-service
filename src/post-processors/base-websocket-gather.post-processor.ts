@@ -1,18 +1,16 @@
 import { BaseGatherPostProcessor } from './base-gather.post-processor.js';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
-import {
-  EventMessagingType,
-  WebsocketEventRegistry,
-  getWsEventForEvent,
-} from '@volontariapp/messaging';
-import { EventStatus, GatherStateMetadata } from '@volontariapp/database';
-import { NotificationService } from '../gateways/notification.service.js';
-import { GatherStateService, type GatherUpdateResult } from '../core/services/gather-state.service.js';
+import type { EventMessagingType, WebsocketEventRegistry } from '@volontariapp/messaging';
+import { getWsEventForEvent } from '@volontariapp/messaging';
+import type { EventStatus, GatherStateMetadata } from '@volontariapp/database';
+import type { NotificationService } from '../gateways/notification.service.js';
+import type { GatherStateService } from '../core/services/gather-state.service.js';
+import { type GatherUpdateResult } from '../core/services/gather-state.service.js';
 
 export abstract class BaseWebSocketGatherPostProcessor<
   TEvent extends EventMessagingType,
-  TTrigger extends EventMessagingType = EventMessagingType
+  TTrigger extends EventMessagingType = EventMessagingType,
 > extends BaseGatherPostProcessor<TEvent, TTrigger> {
   constructor(
     redisClient: Redis,
@@ -28,10 +26,12 @@ export abstract class BaseWebSocketGatherPostProcessor<
 
   protected async processGatherResult(
     metadata: GatherStateMetadata<TTrigger>,
-    result: GatherUpdateResult<TTrigger>
+    result: GatherUpdateResult<TTrigger>,
   ): Promise<void> {
     const aggregationConfig = this.gatherStateService.getAggregationConfig(this.triggerEvent);
-    const eventType = result.isSuccess ? aggregationConfig.successEvent : aggregationConfig.failureEvent;
+    const eventType = result.isSuccess
+      ? aggregationConfig.successEvent
+      : aggregationConfig.failureEvent;
     const wsType = getWsEventForEvent(eventType);
 
     const triggerPayload = metadata.payload as { eventId: string };
@@ -53,7 +53,10 @@ export abstract class BaseWebSocketGatherPostProcessor<
         wsPayload as WebsocketEventRegistry[typeof wsType],
       );
     } else {
-      this.notificationService.broadcast(wsType, wsPayload as WebsocketEventRegistry[typeof wsType]);
+      this.notificationService.broadcast(
+        wsType,
+        wsPayload as WebsocketEventRegistry[typeof wsType],
+      );
     }
   }
 }

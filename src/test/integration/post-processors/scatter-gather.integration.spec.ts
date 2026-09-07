@@ -15,14 +15,16 @@ import { GeocodedSuccessPostProcessor } from '../../../post-processors/events/ge
 import { SocialEventCreatedPostProcessor } from '../../../post-processors/events/social-event-created.post-processor.js';
 import type { NotificationService } from '../../../gateways/notification.service.js';
 import { createNotificationServiceMock } from '../../helpers/mocks/notification.service.mock.js';
-import {
-  SocialEventMessagingType,
-  WebsocketMessagingType,
-  EventEventMessagingType,
+import type {
   StreamEvent,
   IEventCreatedPayload,
   IEventSocialCreatedPayload,
   IEventGeocodedPayload,
+} from '@volontariapp/messaging';
+import {
+  SocialEventMessagingType,
+  WebsocketMessagingType,
+  EventEventMessagingType,
 } from '@volontariapp/messaging';
 import { createMock } from '@volontariapp/testing';
 import type { Redis } from 'ioredis';
@@ -30,7 +32,7 @@ import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import { AppDataSource } from '../../../config/data-source.js';
 import { EventQueueModel, GatherStateModel, EventStatus } from '@volontariapp/database';
 import { GatherStateService } from '../../../core/services/gather-state.service.js';
-import { AppConfigService } from '../../../config/app-config.service.js';
+import type { AppConfigService } from '../../../config/app-config.service.js';
 import { GatherStateRepository } from '../../../core/repositories/gather-state.repository.js';
 
 describe('Scatter-Gather Flow (Integration)', () => {
@@ -63,7 +65,9 @@ describe('Scatter-Gather Flow (Integration)', () => {
         throw firstErr;
       }
     }
-    gatherStateRepository = new GatherStateRepository(AppDataSource.getRepository(GatherStateModel));
+    gatherStateRepository = new GatherStateRepository(
+      AppDataSource.getRepository(GatherStateModel),
+    );
   });
 
   afterAll(async () => {
@@ -118,13 +122,23 @@ describe('Scatter-Gather Flow (Integration)', () => {
         {
           provide: GeocodedSuccessPostProcessor,
           useFactory: (gatherService: GatherStateService) =>
-            new GeocodedSuccessPostProcessor(redisMock, optionsMock, notificationServiceMock, gatherService),
+            new GeocodedSuccessPostProcessor(
+              redisMock,
+              optionsMock,
+              notificationServiceMock,
+              gatherService,
+            ),
           inject: [GatherStateService],
         },
         {
           provide: SocialEventCreatedPostProcessor,
           useFactory: (gatherService: GatherStateService) =>
-            new SocialEventCreatedPostProcessor(redisMock, optionsMock, notificationServiceMock, gatherService),
+            new SocialEventCreatedPostProcessor(
+              redisMock,
+              optionsMock,
+              notificationServiceMock,
+              gatherService,
+            ),
           inject: [GatherStateService],
         },
       ],
@@ -132,7 +146,9 @@ describe('Scatter-Gather Flow (Integration)', () => {
 
     eventCreatedProcessor = module.get<EventCreatedPostProcessor>(EventCreatedPostProcessor);
     geocodedProcessor = module.get<GeocodedSuccessPostProcessor>(GeocodedSuccessPostProcessor);
-    socialCreatedProcessor = module.get<SocialEventCreatedPostProcessor>(SocialEventCreatedPostProcessor);
+    socialCreatedProcessor = module.get<SocialEventCreatedPostProcessor>(
+      SocialEventCreatedPostProcessor,
+    );
   });
 
   afterEach(() => {
@@ -167,7 +183,9 @@ describe('Scatter-Gather Flow (Integration)', () => {
       },
     };
 
-    await eventCreatedProcessor['processEvents']([{ event: eventCreatedMsg, messageId: 'msg-1' } as any]);
+    await eventCreatedProcessor['processEvents']([
+      { event: eventCreatedMsg, messageId: 'msg-1' } as any,
+    ]);
 
     // Aggregation state must be initialized in the database
     let gatherState = await gatherStateRepository.findOne({ correlationId });
@@ -201,7 +219,9 @@ describe('Scatter-Gather Flow (Integration)', () => {
       },
     };
 
-    await geocodedProcessor['processEvents']([{ event: eventGeocodedMsg, messageId: 'msg-2' } as any]);
+    await geocodedProcessor['processEvents']([
+      { event: eventGeocodedMsg, messageId: 'msg-2' } as any,
+    ]);
 
     // Aggregation state must be updated (GEOCODED_SUCCESS -> SUCCESS)
     gatherState = await gatherStateRepository.findOne({ correlationId });
@@ -231,7 +251,9 @@ describe('Scatter-Gather Flow (Integration)', () => {
       },
     };
 
-    await socialCreatedProcessor['processEvents']([{ event: eventSocialCreatedMsg, messageId: 'msg-3' } as any]);
+    await socialCreatedProcessor['processEvents']([
+      { event: eventSocialCreatedMsg, messageId: 'msg-3' } as any,
+    ]);
 
     // Aggregation state must be deleted from the database since it is completed
     gatherState = await gatherStateRepository.findOne({ correlationId });

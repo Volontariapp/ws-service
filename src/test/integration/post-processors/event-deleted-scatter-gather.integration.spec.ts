@@ -17,16 +17,18 @@ import { PostEventDeletedSuccessPostProcessor } from '../../../post-processors/e
 import { PostEventDeletedFailedPostProcessor } from '../../../post-processors/events/post-event-deleted-failed.post-processor.js';
 import type { NotificationService } from '../../../gateways/notification.service.js';
 import { createNotificationServiceMock } from '../../helpers/mocks/notification.service.mock.js';
-import {
-  SocialEventMessagingType,
-  PostEventMessagingType,
-  EventEventMessagingType,
-  WebsocketMessagingType,
+import type {
   StreamEvent,
   IEventDeletedPayload,
   ISocialEventDeletedSuccessPayload,
   ISocialEventDeletedFailedPayload,
   IPostEventDeletedSuccessPayload,
+} from '@volontariapp/messaging';
+import {
+  SocialEventMessagingType,
+  PostEventMessagingType,
+  EventEventMessagingType,
+  WebsocketMessagingType,
 } from '@volontariapp/messaging';
 import { createMock } from '@volontariapp/testing';
 import type { Redis } from 'ioredis';
@@ -34,7 +36,7 @@ import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import { AppDataSource } from '../../../config/data-source.js';
 import { EventQueueModel, GatherStateModel, EventStatus } from '@volontariapp/database';
 import { GatherStateService } from '../../../core/services/gather-state.service.js';
-import { AppConfigService } from '../../../config/app-config.service.js';
+import type { AppConfigService } from '../../../config/app-config.service.js';
 import { GatherStateRepository } from '../../../core/repositories/gather-state.repository.js';
 
 describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
@@ -68,7 +70,9 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
         throw firstErr;
       }
     }
-    gatherStateRepository = new GatherStateRepository(AppDataSource.getRepository(GatherStateModel));
+    gatherStateRepository = new GatherStateRepository(
+      AppDataSource.getRepository(GatherStateModel),
+    );
   });
 
   afterAll(async () => {
@@ -122,34 +126,60 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
         {
           provide: SocialEventDeletedSuccessPostProcessor,
           useFactory: (gatherService: GatherStateService) =>
-            new SocialEventDeletedSuccessPostProcessor(redisMock, optionsMock, notificationServiceMock, gatherService),
+            new SocialEventDeletedSuccessPostProcessor(
+              redisMock,
+              optionsMock,
+              notificationServiceMock,
+              gatherService,
+            ),
           inject: [GatherStateService],
         },
         {
           provide: SocialEventDeletedFailedPostProcessor,
           useFactory: (gatherService: GatherStateService) =>
-            new SocialEventDeletedFailedPostProcessor(redisMock, optionsMock, notificationServiceMock, gatherService),
+            new SocialEventDeletedFailedPostProcessor(
+              redisMock,
+              optionsMock,
+              notificationServiceMock,
+              gatherService,
+            ),
           inject: [GatherStateService],
         },
         {
           provide: PostEventDeletedSuccessPostProcessor,
           useFactory: (gatherService: GatherStateService) =>
-            new PostEventDeletedSuccessPostProcessor(redisMock, optionsMock, notificationServiceMock, gatherService),
+            new PostEventDeletedSuccessPostProcessor(
+              redisMock,
+              optionsMock,
+              notificationServiceMock,
+              gatherService,
+            ),
           inject: [GatherStateService],
         },
         {
           provide: PostEventDeletedFailedPostProcessor,
           useFactory: (gatherService: GatherStateService) =>
-            new PostEventDeletedFailedPostProcessor(redisMock, optionsMock, notificationServiceMock, gatherService),
+            new PostEventDeletedFailedPostProcessor(
+              redisMock,
+              optionsMock,
+              notificationServiceMock,
+              gatherService,
+            ),
           inject: [GatherStateService],
         },
       ],
     }).compile();
 
     eventDeletedProcessor = module.get<EventDeletedPostProcessor>(EventDeletedPostProcessor);
-    socialSuccessProcessor = module.get<SocialEventDeletedSuccessPostProcessor>(SocialEventDeletedSuccessPostProcessor);
-    socialFailedProcessor = module.get<SocialEventDeletedFailedPostProcessor>(SocialEventDeletedFailedPostProcessor);
-    postSuccessProcessor = module.get<PostEventDeletedSuccessPostProcessor>(PostEventDeletedSuccessPostProcessor);
+    socialSuccessProcessor = module.get<SocialEventDeletedSuccessPostProcessor>(
+      SocialEventDeletedSuccessPostProcessor,
+    );
+    socialFailedProcessor = module.get<SocialEventDeletedFailedPostProcessor>(
+      SocialEventDeletedFailedPostProcessor,
+    );
+    postSuccessProcessor = module.get<PostEventDeletedSuccessPostProcessor>(
+      PostEventDeletedSuccessPostProcessor,
+    );
   });
 
   afterEach(() => {
@@ -183,13 +213,19 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
       },
     };
 
-    await eventDeletedProcessor['processEvents']([{ event: eventDeletedMsg, messageId: 'msg-1' } as any]);
+    await eventDeletedProcessor['processEvents']([
+      { event: eventDeletedMsg, messageId: 'msg-1' } as any,
+    ]);
 
     let gatherState = await gatherStateRepository.findOne({ correlationId });
     expect(gatherState).toBeDefined();
     expect(gatherState?.triggerEvent).toBe(EventEventMessagingType.EVENT_DELETED);
-    expect(gatherState?.gatherEventsState['social_event.deleted_success'].status).toBe(EventStatus.PENDING);
-    expect(gatherState?.gatherEventsState['post_event.deleted_success'].status).toBe(EventStatus.PENDING);
+    expect(gatherState?.gatherEventsState['social_event.deleted_success'].status).toBe(
+      EventStatus.PENDING,
+    );
+    expect(gatherState?.gatherEventsState['post_event.deleted_success'].status).toBe(
+      EventStatus.PENDING,
+    );
     expect(gatherState?.metadata?.emitterId).toBe(emitterId);
 
     expect(broadcastExceptSpy).not.toHaveBeenCalled();
@@ -213,12 +249,18 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
       },
     };
 
-    await socialSuccessProcessor['processEvents']([{ event: socialDeletedMsg, messageId: 'msg-2' } as any]);
+    await socialSuccessProcessor['processEvents']([
+      { event: socialDeletedMsg, messageId: 'msg-2' } as any,
+    ]);
 
     gatherState = await gatherStateRepository.findOne({ correlationId });
     expect(gatherState).toBeDefined();
-    expect(gatherState?.gatherEventsState['social_event.deleted_success'].status).toBe(EventStatus.SUCCESS);
-    expect(gatherState?.gatherEventsState['post_event.deleted_success'].status).toBe(EventStatus.PENDING);
+    expect(gatherState?.gatherEventsState['social_event.deleted_success'].status).toBe(
+      EventStatus.SUCCESS,
+    );
+    expect(gatherState?.gatherEventsState['post_event.deleted_success'].status).toBe(
+      EventStatus.PENDING,
+    );
 
     expect(broadcastExceptSpy).not.toHaveBeenCalled();
     expect(notifyUserSpy).not.toHaveBeenCalled();
@@ -241,7 +283,9 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
       },
     };
 
-    await postSuccessProcessor['processEvents']([{ event: postDeletedMsg, messageId: 'msg-3' } as any]);
+    await postSuccessProcessor['processEvents']([
+      { event: postDeletedMsg, messageId: 'msg-3' } as any,
+    ]);
 
     // State completed, so gathered state is deleted
     gatherState = await gatherStateRepository.findOne({ correlationId });
@@ -292,7 +336,9 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
         },
       },
     };
-    await eventDeletedProcessor['processEvents']([{ event: eventDeletedMsg, messageId: 'msg-1' } as any]);
+    await eventDeletedProcessor['processEvents']([
+      { event: eventDeletedMsg, messageId: 'msg-1' } as any,
+    ]);
 
     // === STEP 2: SOCIAL_EVENT_DELETED_FAILED ===
     const socialFailedMsg: StreamEvent<ISocialEventDeletedFailedPayload> = {
@@ -312,13 +358,19 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
         },
       },
     };
-    await socialFailedProcessor['processEvents']([{ event: socialFailedMsg, messageId: 'msg-2' } as any]);
+    await socialFailedProcessor['processEvents']([
+      { event: socialFailedMsg, messageId: 'msg-2' } as any,
+    ]);
 
     // Gather state is not deleted yet (still waiting for post deletion)
     let gatherState = await gatherStateRepository.findOne({ correlationId });
     expect(gatherState).toBeDefined();
-    expect(gatherState?.gatherEventsState['social_event.deleted_success'].status).toBe(EventStatus.FAILED);
-    expect(gatherState?.gatherEventsState['post_event.deleted_success'].status).toBe(EventStatus.PENDING);
+    expect(gatherState?.gatherEventsState['social_event.deleted_success'].status).toBe(
+      EventStatus.FAILED,
+    );
+    expect(gatherState?.gatherEventsState['post_event.deleted_success'].status).toBe(
+      EventStatus.PENDING,
+    );
 
     expect(notifyUserSpy).not.toHaveBeenCalled();
 
@@ -341,14 +393,20 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
     };
     // We expect the completion handler to throw an Error indicating completion failure
     await expect(
-      postSuccessProcessor['processEvents']([{ event: postDeletedMsg, messageId: 'msg-3' } as any])
-    ).rejects.toThrow('Gather state completion failed. Failed events: social_event.deleted_success');
+      postSuccessProcessor['processEvents']([{ event: postDeletedMsg, messageId: 'msg-3' } as any]),
+    ).rejects.toThrow(
+      'Gather state completion failed. Failed events: social_event.deleted_success',
+    );
 
     // Since the saga failed, the gather state is NOT deleted from the database
     gatherState = await gatherStateRepository.findOne({ correlationId });
     expect(gatherState).toBeDefined();
-    expect(gatherState?.gatherEventsState['social_event.deleted_success'].status).toBe(EventStatus.FAILED);
-    expect(gatherState?.gatherEventsState['post_event.deleted_success'].status).toBe(EventStatus.SUCCESS);
+    expect(gatherState?.gatherEventsState['social_event.deleted_success'].status).toBe(
+      EventStatus.FAILED,
+    );
+    expect(gatherState?.gatherEventsState['post_event.deleted_success'].status).toBe(
+      EventStatus.SUCCESS,
+    );
 
     // WS failure notified to emitter (dispatched before throwing the error)
     expect(notifyUserSpy).toHaveBeenCalledWith(

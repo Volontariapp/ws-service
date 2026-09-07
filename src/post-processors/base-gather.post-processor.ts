@@ -1,19 +1,14 @@
 import { BatchPostProcessor, type BatchEventItem } from '@volontariapp/post-processors';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
-import {
-  EventStatus,
-  EventQueueModel,
-  GatherStateModel,
-  GatherStateMetadata,
-} from '@volontariapp/database';
+import type { GatherStateMetadata } from '@volontariapp/database';
+import { EventStatus, EventQueueModel, GatherStateModel } from '@volontariapp/database';
 import { EventQueueRepository } from '@volontariapp/outbox';
 import { AppDataSource } from '../config/data-source.js';
 import { GatherStateRepository } from '../core/repositories/gather-state.repository.js';
-import {
-  EventMessagingType,
-} from '@volontariapp/messaging';
-import { GatherStateService, type GatherUpdateResult } from '../core/services/gather-state.service.js';
+import type { EventMessagingType } from '@volontariapp/messaging';
+import type { GatherStateService } from '../core/services/gather-state.service.js';
+import { type GatherUpdateResult } from '../core/services/gather-state.service.js';
 import { Streams } from '@volontariapp/shared';
 
 export interface IGatherEventPayload {
@@ -24,7 +19,7 @@ export interface IGatherEventPayload {
 
 export abstract class BaseGatherPostProcessor<
   TEvent extends EventMessagingType,
-  TTrigger extends EventMessagingType = EventMessagingType
+  TTrigger extends EventMessagingType = EventMessagingType,
 > extends BatchPostProcessor<TEvent> {
   constructor(
     redisClient: Redis,
@@ -40,7 +35,7 @@ export abstract class BaseGatherPostProcessor<
 
   protected abstract processGatherResult(
     metadata: GatherStateMetadata<TTrigger>,
-    result: GatherUpdateResult<TTrigger>
+    result: GatherUpdateResult<TTrigger>,
   ): Promise<void> | void;
 
   protected async processEvents(events: BatchEventItem<TEvent>[]): Promise<void> {
@@ -70,12 +65,17 @@ export abstract class BaseGatherPostProcessor<
           const status = this.eventStatus;
 
           if (!expectedKey || status === undefined) {
-            this.logger.warn(`expectedKey or eventStatus is missing for non-creator post-processor.`);
+            this.logger.warn(
+              `expectedKey or eventStatus is missing for non-creator post-processor.`,
+            );
             return;
           }
 
           const payload = event.payload.after as IGatherEventPayload;
-          const errorReason = status === EventStatus.FAILED ? payload?.errorReason || 'Sub-event execution failed' : undefined;
+          const errorReason =
+            status === EventStatus.FAILED
+              ? payload.errorReason || 'Sub-event execution failed'
+              : undefined;
 
           const result = await this.gatherStateService.updateEventState<TTrigger>(
             event.correlationId,
@@ -92,7 +92,10 @@ export abstract class BaseGatherPostProcessor<
     );
   }
 
-  private async handleCompletion(correlationId: string, result: GatherUpdateResult<TTrigger>): Promise<void> {
+  private async handleCompletion(
+    correlationId: string,
+    result: GatherUpdateResult<TTrigger>,
+  ): Promise<void> {
     const aggregationConfig = this.gatherStateService.getAggregationConfig(this.triggerEvent);
 
     try {
@@ -109,10 +112,10 @@ export abstract class BaseGatherPostProcessor<
 
     await AppDataSource.transaction(async (entityManager) => {
       const transactionalGatherStateRepo = new GatherStateRepository(
-        entityManager.getRepository(GatherStateModel)
+        entityManager.getRepository(GatherStateModel),
       );
       const transactionalEventQueueRepo = new EventQueueRepository(
-        entityManager.getRepository(EventQueueModel)
+        entityManager.getRepository(EventQueueModel),
       );
 
       await transactionalGatherStateRepo.delete(result.gatherStateId!);
