@@ -16,8 +16,8 @@ import { PostCreatedPostProcessor } from './posts/post-created.post-processor.js
 import { PostCreationFailedPostProcessor } from './posts/post-creation-failed.post-processor.js';
 import { PostDeletedPostProcessor } from './posts/post-deleted.post-processor.js';
 import { PostDeletionFailedPostProcessor } from './posts/post-deletion-failed.post-processor.js';
-import { CommentCreatedPostProcessor } from './posts/comment-created.post-processor.js';
-import { CommentDeletedPostProcessor } from './posts/comment-deleted.post-processor.js';
+import { CommentCreatedPostProcessor } from './posts/comment/comment-created.post-processor.js';
+import { CommentDeletedPostProcessor } from './posts/comment/comment-deleted.post-processor.js';
 import { JobOutboxSuccessPostProcessor } from './jobs/job-outbox-success.post-processor.js';
 import { JobOutboxFailedPostProcessor } from './jobs/job-outbox-failed.post-processor.js';
 import {

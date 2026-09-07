@@ -7,7 +7,7 @@ import {
   PostEventMessagingType,
   WebsocketMessagingType,
 } from '@volontariapp/messaging';
-import { NotificationService } from '../../gateways/notification.service.js';
+import { NotificationService } from '../../../gateways/notification.service.js';
 
 @Injectable()
 export class CommentDeletedPostProcessor extends BatchPostProcessor<PostEventMessagingType.COMMENT_DELETED> {
