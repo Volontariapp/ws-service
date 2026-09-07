@@ -4345,13 +4345,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/messaging@npm:2.11.0":
-  version: 2.11.0
-  resolution: "@volontariapp/messaging@npm:2.11.0"
+"@volontariapp/messaging@npm:2.12.1, @volontariapp/messaging@npm:^2.12.1":
+  version: 2.12.1
+  resolution: "@volontariapp/messaging@npm:2.12.1"
   dependencies:
     "@volontariapp/contracts": "npm:4.3.4"
-    "@volontariapp/shared": "npm:0.8.1"
-  checksum: 10c0/4ff1ddd288e1a9426f1bb506f53c9ee2b099d631d2710da04581d4998373b849618d3f04adaacff4e3f422844f32ed129d1f492b79d8a445562ae102ceec7aa4
+    "@volontariapp/shared": "npm:0.8.2"
+  checksum: 10c0/aaf02670e0a86128c389cc09a47c8035987aed19871d662fb4a94e295c636cd295bf3c179ac6a1038fc47ae2626a87d0d9be00d977586aa863f6e0e68f138196
   languageName: node
   linkType: hard
 
@@ -4404,13 +4404,6 @@ __metadata:
     "@nestjs/common": ^11.0.0
     ioredis: ^5.0.0
   checksum: 10c0/7a43b79c4477522b3d5c27e3c2ac9421864a99506094102e2c9075c0c107c993c66632ee99abbd1423e44cbcbd848c397f4fc678c65fbf00975775517f006ca6
-  languageName: node
-  linkType: hard
-
-"@volontariapp/shared@npm:0.8.1":
-  version: 0.8.1
-  resolution: "@volontariapp/shared@npm:0.8.1"
-  checksum: 10c0/2acb433b695912c8a41119b2308b64c8e4172270cea55357fc15f0002368b7a27df5a118af9f9b29499cf21b96fb3bcbbfe52bdd42dc49bae325e105cac7c554
   languageName: node
   linkType: hard
 
