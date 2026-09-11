@@ -104,12 +104,6 @@ export abstract class BaseGatherPostProcessor<
       this.logger.error('Failed to dispatch feedback:', err);
     }
 
-    if (!result.isSuccess) {
-      throw new Error(
-        `Gather state completion failed. Failed events: ${result.failedEvents?.join(', ') || 'unknown'}`,
-      );
-    }
-
     await AppDataSource.transaction(async (entityManager) => {
       const transactionalGatherStateRepo = new GatherStateRepository(
         entityManager.getRepository(GatherStateModel),
@@ -123,11 +117,21 @@ export abstract class BaseGatherPostProcessor<
       const triggerPayload = result.metadata!.payload as { eventId: string } | undefined;
       const eventId = triggerPayload?.eventId;
 
-      const eventType = aggregationConfig.successEvent;
-      const payloadAfter = {
-        eventId: eventId!,
-        userId: result.metadata!.emitterId ?? null,
-      };
+      const eventType = result.isSuccess ? aggregationConfig.successEvent : aggregationConfig.failureEvent;
+      const payloadAfter = result.isSuccess
+        ? {
+            eventId: eventId!,
+            userId: result.metadata!.emitterId ?? null,
+          }
+        : {
+            eventId: eventId!,
+            failedEvents: result.failedEvents ?? null,
+            userId: result.metadata!.emitterId ?? null,
+          };
+
+      const targetServices = result.isSuccess
+        ? [Streams.EVENT_SUCCESSFULLY_CREATED]
+        : [Streams.EVENT_JOB_OUTBOX_FAILURE];
 
       await transactionalEventQueueRepo.create({
         type: eventType,
@@ -136,8 +140,8 @@ export abstract class BaseGatherPostProcessor<
         traceId: result.metadata!.traceId,
         correlationId,
         version: 1,
-        payload: { before: undefined, after: payloadAfter },
-        targetServices: [Streams.EVENT_SUCCESSFULLY_CREATED],
+        payload: { before: undefined, after: payloadAfter as any },
+        targetServices,
       });
     });
   }
