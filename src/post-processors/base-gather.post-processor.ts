@@ -118,17 +118,6 @@ export abstract class BaseGatherPostProcessor<
       const eventId = triggerPayload?.eventId;
 
       const eventType = result.isSuccess ? aggregationConfig.successEvent : aggregationConfig.failureEvent;
-      const payloadAfter = result.isSuccess
-        ? {
-            eventId: eventId!,
-            userId: result.metadata!.emitterId ?? null,
-          }
-        : {
-            eventId: eventId!,
-            failedEvents: result.failedEvents ?? null,
-            userId: result.metadata!.emitterId ?? null,
-          };
-
       const targetServices = result.isSuccess
         ? [Streams.EVENT_SUCCESSFULLY_CREATED]
         : [Streams.EVENT_JOB_OUTBOX_FAILURE];
@@ -140,7 +129,14 @@ export abstract class BaseGatherPostProcessor<
         traceId: result.metadata!.traceId,
         correlationId,
         version: 1,
-        payload: { before: undefined, after: payloadAfter as any },
+        payload: {
+          before: undefined,
+          after: {
+            eventId: eventId!,
+            userId: result.metadata!.emitterId ?? null,
+            ...(result.isSuccess ? {} : { failedEvents: result.failedEvents ?? null }),
+          },
+        },
         targetServices,
       });
     });
