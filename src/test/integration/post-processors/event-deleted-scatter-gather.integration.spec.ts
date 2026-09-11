@@ -391,33 +391,25 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
         },
       },
     };
-    // We expect the completion handler to throw an Error indicating completion failure
-    await expect(
-      postSuccessProcessor['processEvents']([{ event: postDeletedMsg, messageId: 'msg-3' } as any]),
-    ).rejects.toThrow(
-      'Gather state completion failed. Failed events: social_event.deleted_success',
-    );
+    // Process completion handler when a sub-event failed
+    await postSuccessProcessor['processEvents']([{ event: postDeletedMsg, messageId: 'msg-3' } as any]);
 
-    // Since the saga failed, the gather state is NOT deleted from the database
+    // The gather state IS deleted from database upon completion
     gatherState = await gatherStateRepository.findOne({ correlationId });
-    expect(gatherState).toBeDefined();
-    expect(gatherState?.gatherEventsState['social_event.deleted_success'].status).toBe(
-      EventStatus.FAILED,
-    );
-    expect(gatherState?.gatherEventsState['post_event.deleted_success'].status).toBe(
-      EventStatus.SUCCESS,
-    );
+    expect(gatherState).toBeNull();
 
-    // WS failure notified to emitter (dispatched before throwing the error)
+    // WS failure notified to emitter (dispatched before persisting outbox event)
     expect(notifyUserSpy).toHaveBeenCalledWith(
       emitterId,
       WebsocketMessagingType.EVENT_DELETION_FAILED,
       expect.objectContaining({ eventId, failedEvents: ['social_event.deleted_success'] }),
     );
 
-    // No outbox event written for failures
+    // Outbox failure event is written to event_queue for saga compensation
     const eventQueueRepo = AppDataSource.getRepository(EventQueueModel);
     const outboxEvents = await eventQueueRepo.find();
-    expect(outboxEvents).toHaveLength(0);
+    expect(outboxEvents).toHaveLength(1);
+    expect(outboxEvents[0].type).toBe(EventEventMessagingType.EVENT_DELETION_FAILED);
+    expect(outboxEvents[0].correlationId).toBe(correlationId);
   });
 });
