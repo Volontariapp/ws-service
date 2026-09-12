@@ -120,7 +120,7 @@ export abstract class BaseGatherPostProcessor<
       const eventType = result.isSuccess ? aggregationConfig.successEvent : aggregationConfig.failureEvent;
       const targetServices = result.isSuccess
         ? [Streams.EVENT_SUCCESSFULLY_CREATED]
-        : [Streams.EVENT_JOB_OUTBOX_FAILURE];
+        : [Streams.EVENT_CREATED_FEEDBACK];
 
       await transactionalEventQueueRepo.create({
         type: eventType,
