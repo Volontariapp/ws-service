@@ -30,8 +30,8 @@ export class GatherStateService {
    * Returns the aggregation configuration associated with a given trigger event.
    */
   getAggregationConfig(trigger: string) {
-    const aggregations = this.configService.scatterGather.aggregations || [];
-    const aggregation = aggregations.find((agg) => agg.trigger === trigger);
+    const aggregations = this.configService.scatterGather.aggregations;
+    const aggregation = aggregations.find((agg) => (agg.trigger as string) === trigger);
 
     if (!aggregation) {
       this.logger.warn(`No aggregation configuration found for trigger event: ${trigger}`);
@@ -107,7 +107,7 @@ export class GatherStateService {
     const gatherEventsState = { ...gatherState.gatherEventsState };
 
     // Verify if the event is part of the aggregation
-    if (!gatherEventsState[expectedEvent]) {
+    if (!(expectedEvent in gatherEventsState)) {
       this.logger.debug(
         `Event ${expectedEvent} is not expected for correlationId: ${correlationId}`,
       );
@@ -130,9 +130,6 @@ export class GatherStateService {
 
     // Check if all expected events are resolved (no longer PENDING)
     const aggregation = this.getAggregationConfig(gatherState.triggerEvent);
-    if (!aggregation) {
-      return { isComplete: false };
-    }
 
     const isComplete = aggregation.expects.every(
       (expectedType) => gatherEventsState[expectedType].status !== EventStatus.PENDING,

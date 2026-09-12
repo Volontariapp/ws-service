@@ -44,7 +44,11 @@ describe('Scatter-Gather Flow (Integration)', () => {
 
   beforeAll(async () => {
     if (!AppDataSource.isInitialized) {
-      const opts = AppDataSource.options as any;
+      const opts = AppDataSource.options as {
+        type?: string;
+        host?: string;
+        migrations?: unknown[];
+      };
       opts.migrations = [];
       try {
         if (opts.type === 'postgres' && opts.host === 'localhost') {
@@ -167,7 +171,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
     // === STEP 1: Reception of EVENT_CREATED ===
     const eventCreatedMsg: StreamEvent<IEventCreatedPayload> = {
       id: 'event-created-msg-id',
-      type: EventEventMessagingType.EVENT_CREATED.toString(),
+      type: EventEventMessagingType.EVENT_CREATED,
       emitter: 'event-service',
       emitterId,
       correlationId,
@@ -183,9 +187,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
       },
     };
 
-    await eventCreatedProcessor['processEvents']([
-      { event: eventCreatedMsg, messageId: 'msg-1' } as any,
-    ]);
+    await eventCreatedProcessor['processEvents']([{ event: eventCreatedMsg, messageId: 'msg-1' }]);
 
     // Aggregation state must be initialized in the database
     let gatherState = await gatherStateRepository.findOne({ correlationId });
@@ -195,7 +197,8 @@ describe('Scatter-Gather Flow (Integration)', () => {
     expect(gatherState?.gatherEventsState['SOCIAL_EVENT_CREATED'].status).toBe(EventStatus.PENDING);
     expect(gatherState?.metadata?.emitterId).toBe(emitterId);
     expect(gatherState?.metadata?.traceId).toBe(traceId);
-    expect((gatherState?.metadata?.payload as any).eventId).toBe(eventId);
+    const createdPayload = gatherState?.metadata?.payload as IEventCreatedPayload;
+    expect(createdPayload.eventId).toBe(eventId);
 
     // No WebSocket or Outbox for now
     expect(broadcastExceptSpy).not.toHaveBeenCalled();
@@ -204,7 +207,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
     // === STEP 2: Reception of EVENT_GEOCODED ===
     const eventGeocodedMsg: StreamEvent<IEventGeocodedPayload> = {
       id: 'geocoded-msg-id',
-      type: EventEventMessagingType.EVENT_GEOCODED.toString(),
+      type: EventEventMessagingType.EVENT_GEOCODED,
       emitter: 'geocode-service',
       emitterId: '',
       correlationId,
@@ -219,9 +222,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
       },
     };
 
-    await geocodedProcessor['processEvents']([
-      { event: eventGeocodedMsg, messageId: 'msg-2' } as any,
-    ]);
+    await geocodedProcessor['processEvents']([{ event: eventGeocodedMsg, messageId: 'msg-2' }]);
 
     // Aggregation state must be updated (GEOCODED_SUCCESS -> SUCCESS)
     gatherState = await gatherStateRepository.findOne({ correlationId });
@@ -236,7 +237,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
     // === STEP 3: Reception of EVENT_SOCIAL_CREATED ===
     const eventSocialCreatedMsg: StreamEvent<IEventSocialCreatedPayload> = {
       id: 'social-created-msg-id',
-      type: SocialEventMessagingType.EVENT_SOCIAL_CREATED.toString(),
+      type: SocialEventMessagingType.EVENT_SOCIAL_CREATED,
       emitter: 'social-service',
       emitterId: '',
       correlationId,
@@ -252,7 +253,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
     };
 
     await socialCreatedProcessor['processEvents']([
-      { event: eventSocialCreatedMsg, messageId: 'msg-3' } as any,
+      { event: eventSocialCreatedMsg, messageId: 'msg-3' },
     ]);
 
     // Aggregation state must be deleted from the database since it is completed
@@ -292,7 +293,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
     // === STEP 1: Reception of EVENT_CREATED ===
     const eventCreatedMsg: StreamEvent<IEventCreatedPayload> = {
       id: 'event-created-msg-id-2',
-      type: EventEventMessagingType.EVENT_CREATED.toString(),
+      type: EventEventMessagingType.EVENT_CREATED,
       emitter: 'event-service',
       emitterId,
       correlationId,
@@ -307,12 +308,12 @@ describe('Scatter-Gather Flow (Integration)', () => {
         },
       },
     };
-    await eventCreatedProcessor['processEvents']([{ event: eventCreatedMsg, messageId: 'msg-1' } as any]);
+    await eventCreatedProcessor['processEvents']([{ event: eventCreatedMsg, messageId: 'msg-1' }]);
 
     // === STEP 2: Reception of GEOCODED_SUCCESS ===
     const eventGeocodedMsg: StreamEvent<IEventGeocodedPayload> = {
       id: 'geocoded-msg-id-2',
-      type: EventEventMessagingType.EVENT_GEOCODED.toString(),
+      type: EventEventMessagingType.EVENT_GEOCODED,
       emitter: 'geocode-service',
       emitterId: '',
       correlationId,
@@ -324,23 +325,32 @@ describe('Scatter-Gather Flow (Integration)', () => {
         after: { eventId },
       },
     };
-    await geocodedProcessor['processEvents']([{ event: eventGeocodedMsg, messageId: 'msg-2' } as any]);
+    await geocodedProcessor['processEvents']([{ event: eventGeocodedMsg, messageId: 'msg-2' }]);
 
     // === STEP 3: Reception of SOCIAL_EVENT_CREATED failure (by omitting social step or sending failed status) ===
     // Force status to FAILED for SOCIAL_EVENT_CREATED in gatherState
-    await gatherStateRepository.update(
-      (await gatherStateRepository.findOne({ correlationId }))!.id,
-      {
+    const currentState = await gatherStateRepository.findOne({ correlationId });
+    if (currentState) {
+      await gatherStateRepository.update(currentState.id, {
         correlationId,
         gatherEventsState: {
-          GEOCODED_SUCCESS: { eventType: 'GEOCODED_SUCCESS', status: EventStatus.SUCCESS, updatedAt: new Date().toISOString() },
-          SOCIAL_EVENT_CREATED: { eventType: 'SOCIAL_EVENT_CREATED', status: EventStatus.FAILED, updatedAt: new Date().toISOString(), errorReason: 'Neo4j fail' },
+          GEOCODED_SUCCESS: {
+            eventType: 'GEOCODED_SUCCESS',
+            status: EventStatus.SUCCESS,
+            updatedAt: new Date().toISOString(),
+          },
+          SOCIAL_EVENT_CREATED: {
+            eventType: 'SOCIAL_EVENT_CREATED',
+            status: EventStatus.FAILED,
+            updatedAt: new Date().toISOString(),
+            errorReason: 'Neo4j fail',
+          },
         },
-      },
-    );
+      });
+    }
 
     // Call processEvents to complete the gather state
-    await geocodedProcessor['processEvents']([{ event: eventGeocodedMsg, messageId: 'msg-3' } as any]);
+    await geocodedProcessor['processEvents']([{ event: eventGeocodedMsg, messageId: 'msg-3' }]);
 
     // State is deleted from DB
     const gatherState = await gatherStateRepository.findOne({ correlationId });
