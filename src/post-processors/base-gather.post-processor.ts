@@ -98,7 +98,8 @@ export abstract class BaseGatherPostProcessor<
   ): Promise<void> {
     const aggregationConfig = this.gatherStateService.getAggregationConfig(this.triggerEvent);
     const metadata = result.metadata;
-    if (!metadata || !result.gatherStateId) {
+    const gatherStateId = result.gatherStateId;
+    if (!metadata || !gatherStateId) {
       return;
     }
 
@@ -116,7 +117,7 @@ export abstract class BaseGatherPostProcessor<
         entityManager.getRepository(EventQueueModel),
       );
 
-      await transactionalGatherStateRepo.delete(result.gatherStateId);
+      await transactionalGatherStateRepo.delete(gatherStateId);
 
       const triggerPayload = metadata.payload as { eventId?: string } | undefined;
       const eventId = triggerPayload?.eventId ?? '';
