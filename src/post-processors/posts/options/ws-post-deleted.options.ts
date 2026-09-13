@@ -7,7 +7,7 @@ export const wsPostDeletedOptionsProvider = {
   provide: WS_POST_DELETED_POST_PROCESSOR_OPTIONS,
   useFactory: (appConfig: AppConfigService) => ({
     groupName: 'WsPostDeletedGroup',
-    streamName: getEventStreamName(Streams.WS_POST_DELETED_FEEDBACK),
+    streamName: getEventStreamName(Streams.POST_DELETED),
     batchSize: appConfig.config.postProcessor.batchSize,
     blockTimeout: appConfig.config.postProcessor.blockTimeout,
     idempotencyTtlSeconds: appConfig.config.postProcessor.idempotencyTtlSeconds,

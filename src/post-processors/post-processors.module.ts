@@ -16,6 +16,8 @@ import { PostCreatedPostProcessor } from './posts/post-created.post-processor.js
 import { PostCreationFailedPostProcessor } from './posts/post-creation-failed.post-processor.js';
 import { PostDeletedPostProcessor } from './posts/post-deleted.post-processor.js';
 import { PostDeletionFailedPostProcessor } from './posts/post-deletion-failed.post-processor.js';
+import { PostSocialCreatedPostProcessor } from './posts/post-social-created.post-processor.js';
+import { PostSocialDeletedPostProcessor } from './posts/post-social-deleted.post-processor.js';
 import { CommentCreatedPostProcessor } from './posts/comment/comment-created.post-processor.js';
 import { CommentDeletedPostProcessor } from './posts/comment/comment-deleted.post-processor.js';
 import { PostLikedPostProcessor } from './posts/interactions/post-liked.post-processor.js';
@@ -37,6 +39,8 @@ import {
   WS_POST_CREATION_FAILED_POST_PROCESSOR_OPTIONS,
   WS_POST_DELETED_POST_PROCESSOR_OPTIONS,
   WS_POST_DELETION_FAILED_POST_PROCESSOR_OPTIONS,
+  WS_POST_SOCIAL_CREATED_POST_PROCESSOR_OPTIONS,
+  WS_POST_SOCIAL_DELETED_POST_PROCESSOR_OPTIONS,
   WS_COMMENT_CREATED_POST_PROCESSOR_OPTIONS,
   WS_COMMENT_DELETED_POST_PROCESSOR_OPTIONS,
   WS_POST_LIKED_POST_PROCESSOR_OPTIONS,
@@ -57,6 +61,8 @@ import {
   wsPostCreationFailedOptionsProvider,
   wsPostDeletedOptionsProvider,
   wsPostDeletionFailedOptionsProvider,
+  wsPostSocialCreatedOptionsProvider,
+  wsPostSocialDeletedOptionsProvider,
   wsCommentCreatedOptionsProvider,
   wsCommentDeletedOptionsProvider,
   wsPostLikedOptionsProvider,
@@ -90,6 +96,8 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
     wsPostCreationFailedOptionsProvider,
     wsPostDeletedOptionsProvider,
     wsPostDeletionFailedOptionsProvider,
+    wsPostSocialCreatedOptionsProvider,
+    wsPostSocialDeletedOptionsProvider,
     wsCommentCreatedOptionsProvider,
     wsCommentDeletedOptionsProvider,
     wsPostLikedOptionsProvider,
@@ -201,18 +209,43 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
       useFactory: async (
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
-        notificationService: NotificationService,
+        gatherStateService: GatherStateService,
       ) => {
         await redisProvider.connect();
         const postProcessor = new PostCreatedPostProcessor(
           redisProvider.getDriver(),
           options,
-          notificationService,
+          gatherStateService,
         );
         void postProcessor.start();
         return postProcessor;
       },
-      inject: [GLOBAL_REDIS_PROVIDER, WS_POST_CREATED_POST_PROCESSOR_OPTIONS, NotificationService],
+      inject: [GLOBAL_REDIS_PROVIDER, WS_POST_CREATED_POST_PROCESSOR_OPTIONS, GatherStateService],
+    },
+    {
+      provide: PostSocialCreatedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+        gatherStateService: GatherStateService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new PostSocialCreatedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+          gatherStateService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_POST_SOCIAL_CREATED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+        GatherStateService,
+      ],
     },
     {
       provide: LogPostCreatedPostProcessor,
@@ -251,18 +284,43 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
       useFactory: async (
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
-        notificationService: NotificationService,
+        gatherStateService: GatherStateService,
       ) => {
         await redisProvider.connect();
         const postProcessor = new PostDeletedPostProcessor(
           redisProvider.getDriver(),
           options,
-          notificationService,
+          gatherStateService,
         );
         void postProcessor.start();
         return postProcessor;
       },
-      inject: [GLOBAL_REDIS_PROVIDER, WS_POST_DELETED_POST_PROCESSOR_OPTIONS, NotificationService],
+      inject: [GLOBAL_REDIS_PROVIDER, WS_POST_DELETED_POST_PROCESSOR_OPTIONS, GatherStateService],
+    },
+    {
+      provide: PostSocialDeletedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+        gatherStateService: GatherStateService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new PostSocialDeletedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+          gatherStateService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_POST_SOCIAL_DELETED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+        GatherStateService,
+      ],
     },
     {
       provide: PostDeletionFailedPostProcessor,

@@ -55,6 +55,18 @@
         "expects": ["social_event.deleted_success", "post_event.deleted_success"],
         "successEvent": "event.deletion_successfull",
         "failureEvent": "event.deletion_failed"
+      },
+      {
+        "trigger": "post.created",
+        "expects": ["POST_SOCIAL_CREATED"],
+        "successEvent": "post.creation_successfull",
+        "failureEvent": "post.creation_failed"
+      },
+      {
+        "trigger": "post.deleted",
+        "expects": ["POST_SOCIAL_DELETED"],
+        "successEvent": "post.deletion_successfull",
+        "failureEvent": "post.deletion_failed"
       }
     ]
   },
