@@ -4355,13 +4355,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/messaging@npm:2.14.0-snap-888ba49":
-  version: 2.14.0-snap-888ba49
-  resolution: "@volontariapp/messaging@npm:2.14.0-snap-888ba49"
+"@volontariapp/messaging@npm:2.14.0":
+  version: 2.14.0
+  resolution: "@volontariapp/messaging@npm:2.14.0"
   dependencies:
     "@volontariapp/contracts": "npm:4.3.6"
     "@volontariapp/shared": "npm:0.9.0"
-  checksum: 10c0/69aaff8ac88f08f1027ddc2e106b0e69d84a7cb91066243c342eade74279f1b5d9b2f6699a985a8bf342497a24b2b6ea464520f219a0278b384661f13f4c5104
+  checksum: 10c0/a46ef200eb6ba13a7e65abe6e3544598d069e0ebaf3f7cb13c8078db3e4945ba49900763e2f442eaf47211124823da39b84c79b89c6298c6f13ed562ba8de170
   languageName: node
   linkType: hard
 
@@ -11941,7 +11941,7 @@ __metadata:
     "@volontariapp/health-check": "npm:^1.0.6"
     "@volontariapp/health-check-nest": "npm:^0.1.37"
     "@volontariapp/logger": "npm:^0.2.7"
-    "@volontariapp/messaging": "npm:2.14.0-snap-888ba49"
+    "@volontariapp/messaging": "npm:2.14.0"
     "@volontariapp/monitoring": "npm:^2.1.7"
     "@volontariapp/post-processors": "npm:^3.2.13"
     "@volontariapp/shared": "npm:^0.9.0"
