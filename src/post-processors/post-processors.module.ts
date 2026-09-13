@@ -3,6 +3,9 @@ import { RedisProvider } from '@volontariapp/bridge';
 import { NestRedisProvider } from '@volontariapp/bridge-nest';
 import { PostProcessorOptions } from '@volontariapp/post-processors';
 import { UserCreatedPostProcessor } from './users/user-created.post-processor.js';
+import { UserDeletedPostProcessor } from './users/user-deleted.post-processor.js';
+import { UserSocialCreatedPostProcessor } from './users/user-social-created.post-processor.js';
+import { UserSocialDeletedPostProcessor } from './users/user-social-deleted.post-processor.js';
 import { SocialEventCreatedPostProcessor } from './events/social-event-created.post-processor.js';
 import { EventCreatedPostProcessor } from './events/event-created.post-processor.js';
 import { GeocodedSuccessPostProcessor } from './events/geocoded-success.post-processor.js';
@@ -26,6 +29,9 @@ import { JobOutboxSuccessPostProcessor } from './jobs/job-outbox-success.post-pr
 import { JobOutboxFailedPostProcessor } from './jobs/job-outbox-failed.post-processor.js';
 import {
   WS_USER_CREATED_POST_PROCESSOR_OPTIONS,
+  WS_USER_DELETED_POST_PROCESSOR_OPTIONS,
+  WS_USER_SOCIAL_CREATED_POST_PROCESSOR_OPTIONS,
+  WS_USER_SOCIAL_DELETED_POST_PROCESSOR_OPTIONS,
   WS_SOCIAL_EVENT_CREATED_POST_PROCESSOR_OPTIONS,
   WS_EVENT_CREATED_POST_PROCESSOR_OPTIONS,
   WS_EVENT_GEOCODED_POST_PROCESSOR_OPTIONS,
@@ -48,6 +54,9 @@ import {
   WS_JOB_OUTBOX_SUCCESS_POST_PROCESSOR_OPTIONS,
   WS_JOB_OUTBOX_FAILED_POST_PROCESSOR_OPTIONS,
   wsUserCreatedOptionsProvider,
+  wsUserDeletedOptionsProvider,
+  wsUserSocialCreatedOptionsProvider,
+  wsUserSocialDeletedOptionsProvider,
   wsSocialEventCreatedOptionsProvider,
   wsEventCreatedOptionsProvider,
   wsEventGeocodedOptionsProvider,
@@ -72,7 +81,6 @@ import {
 } from './options/index.js';
 import { GatewaysModule } from '../gateways/gateways.module.js';
 import { CoreModule } from '../core/core.module.js';
-import { SocketManagerService } from '../core/services/socket-manager.service.js';
 import { NotificationService } from '../gateways/notification.service.js';
 import { AppConfigService } from '../config/app-config.service.js';
 import { GatherStateService } from '../core/services/gather-state.service.js';
@@ -83,6 +91,9 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
   imports: [GatewaysModule, CoreModule],
   providers: [
     wsUserCreatedOptionsProvider,
+    wsUserDeletedOptionsProvider,
+    wsUserSocialCreatedOptionsProvider,
+    wsUserSocialDeletedOptionsProvider,
     wsSocialEventCreatedOptionsProvider,
     wsEventCreatedOptionsProvider,
     wsEventGeocodedOptionsProvider,
@@ -116,24 +127,85 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
       useFactory: async (
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
-        socketManager: SocketManagerService,
-        notificationService: NotificationService,
+        gatherStateService: GatherStateService,
       ) => {
         await redisProvider.connect();
         const postProcessor = new UserCreatedPostProcessor(
           redisProvider.getDriver(),
           options,
-          socketManager,
+          gatherStateService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [GLOBAL_REDIS_PROVIDER, WS_USER_CREATED_POST_PROCESSOR_OPTIONS, GatherStateService],
+    },
+    {
+      provide: UserDeletedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        gatherStateService: GatherStateService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new UserDeletedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          gatherStateService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [GLOBAL_REDIS_PROVIDER, WS_USER_DELETED_POST_PROCESSOR_OPTIONS, GatherStateService],
+    },
+    {
+      provide: UserSocialCreatedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+        gatherStateService: GatherStateService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new UserSocialCreatedPostProcessor(
+          redisProvider.getDriver(),
+          options,
           notificationService,
+          gatherStateService,
         );
         void postProcessor.start();
         return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
-        WS_USER_CREATED_POST_PROCESSOR_OPTIONS,
-        SocketManagerService,
+        WS_USER_SOCIAL_CREATED_POST_PROCESSOR_OPTIONS,
         NotificationService,
+        GatherStateService,
+      ],
+    },
+    {
+      provide: UserSocialDeletedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+        gatherStateService: GatherStateService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new UserSocialDeletedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+          gatherStateService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_USER_SOCIAL_DELETED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+        GatherStateService,
       ],
     },
     {

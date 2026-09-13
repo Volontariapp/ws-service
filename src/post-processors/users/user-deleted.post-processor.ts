@@ -6,20 +6,20 @@ import { UserEventMessagingType } from '@volontariapp/messaging';
 import { GatherStateService } from '../../core/services/gather-state.service.js';
 
 @Injectable()
-export class UserCreatedPostProcessor extends BaseGatherPostProcessor<
-  UserEventMessagingType.USER_CREATED,
-  UserEventMessagingType.USER_CREATED
+export class UserDeletedPostProcessor extends BaseGatherPostProcessor<
+  UserEventMessagingType.USER_DELETED,
+  UserEventMessagingType.USER_DELETED
 > {
   constructor(
     redisClient: Redis,
     options: PostProcessorOptions,
     gatherStateService: GatherStateService,
   ) {
-    super(redisClient, options, gatherStateService, UserEventMessagingType.USER_CREATED, true);
+    super(redisClient, options, gatherStateService, UserEventMessagingType.USER_DELETED, true);
   }
 
   protected override shouldProcess(eventType: UserEventMessagingType | string): boolean {
-    return eventType === UserEventMessagingType.USER_CREATED.toString();
+    return eventType === UserEventMessagingType.USER_DELETED.toString();
   }
 
   protected override processGatherResult(): void {}
