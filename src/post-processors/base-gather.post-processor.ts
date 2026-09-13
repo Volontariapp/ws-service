@@ -52,7 +52,7 @@ export abstract class BaseGatherPostProcessor<
             {
               emitterId: event.emitterId,
               traceId: event.traceId,
-              payload: event.payload.after as any,
+              payload: event.payload.after as GatherStateMetadata<TTrigger>['payload'],
             },
           );
         } else {
@@ -74,7 +74,7 @@ export abstract class BaseGatherPostProcessor<
           const payload = event.payload.after as IGatherEventPayload;
           const errorReason =
             status === EventStatus.FAILED
-              ? payload.errorReason || 'Sub-event execution failed'
+              ? (payload.errorReason ?? 'Sub-event execution failed')
               : undefined;
 
           const result = await this.gatherStateService.updateEventState<TTrigger>(
@@ -97,17 +97,16 @@ export abstract class BaseGatherPostProcessor<
     result: GatherUpdateResult<TTrigger>,
   ): Promise<void> {
     const aggregationConfig = this.gatherStateService.getAggregationConfig(this.triggerEvent);
-
-    try {
-      await this.processGatherResult(result.metadata!, result);
-    } catch (err) {
-      this.logger.error('Failed to dispatch feedback:', err);
+    const metadata = result.metadata;
+    const gatherStateId = result.gatherStateId;
+    if (!metadata || !gatherStateId) {
+      return;
     }
 
-    if (!result.isSuccess) {
-      throw new Error(
-        `Gather state completion failed. Failed events: ${result.failedEvents?.join(', ') || 'unknown'}`,
-      );
+    try {
+      await this.processGatherResult(metadata, result);
+    } catch (err) {
+      this.logger.error('Failed to dispatch feedback:', err);
     }
 
     await AppDataSource.transaction(async (entityManager) => {
@@ -118,26 +117,34 @@ export abstract class BaseGatherPostProcessor<
         entityManager.getRepository(EventQueueModel),
       );
 
-      await transactionalGatherStateRepo.delete(result.gatherStateId!);
+      await transactionalGatherStateRepo.delete(gatherStateId);
 
-      const triggerPayload = result.metadata!.payload as { eventId: string } | undefined;
-      const eventId = triggerPayload?.eventId;
+      const triggerPayload = metadata.payload as { eventId?: string } | undefined;
+      const eventId = triggerPayload?.eventId ?? '';
 
-      const eventType = aggregationConfig.successEvent;
-      const payloadAfter = {
-        eventId: eventId!,
-        userId: result.metadata!.emitterId ?? null,
-      };
+      const eventType = result.isSuccess
+        ? aggregationConfig.successEvent
+        : aggregationConfig.failureEvent;
+      const targetServices = result.isSuccess
+        ? [Streams.EVENT_SUCCESSFULLY_CREATED]
+        : [Streams.WS_EVENT_CREATED_FEEDBACK];
 
       await transactionalEventQueueRepo.create({
         type: eventType,
         emitter: 'ws-service',
-        emitterId: result.metadata!.emitterId,
-        traceId: result.metadata!.traceId,
+        emitterId: metadata.emitterId,
+        traceId: metadata.traceId,
         correlationId,
         version: 1,
-        payload: { before: undefined, after: payloadAfter },
-        targetServices: [Streams.EVENT_SUCCESSFULLY_CREATED],
+        payload: {
+          before: undefined,
+          after: {
+            eventId,
+            userId: metadata.emitterId ?? null,
+            ...(result.isSuccess ? {} : { failedEvents: result.failedEvents ?? null }),
+          },
+        },
+        targetServices,
       });
     });
   }

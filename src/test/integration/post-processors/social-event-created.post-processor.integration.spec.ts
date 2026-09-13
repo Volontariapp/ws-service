@@ -33,7 +33,14 @@ describe('SocialEventCreatedPostProcessor (Integration)', () => {
 
   beforeAll(async () => {
     if (!AppDataSource.isInitialized) {
-      const opts = AppDataSource.options as any;
+      const opts = AppDataSource.options as {
+        type?: string;
+        host?: string;
+        port?: number;
+        database?: string;
+        username?: string;
+        migrations?: unknown[];
+      };
       opts.migrations = [];
       try {
         if (opts.type === 'postgres' && opts.host === 'localhost') {
@@ -80,11 +87,14 @@ describe('SocialEventCreatedPostProcessor (Integration)', () => {
     notificationServiceMock = createNotificationServiceMock();
     gatherStateServiceMock = createMock<GatherStateService>();
     gatherStateServiceMock.getAggregationConfig.mockReturnValue({
-      trigger: 'event.created',
-      expects: ['GEOCODED_SUCCESS', 'SOCIAL_EVENT_CREATED'],
-      successEvent: 'event.creation_successfull',
-      failureEvent: 'event.creation_failed',
-    } as any);
+      trigger: EventEventMessagingType.EVENT_CREATED,
+      expects: [
+        EventEventMessagingType.EVENT_GEOCODED,
+        SocialEventMessagingType.EVENT_SOCIAL_CREATED,
+      ],
+      successEvent: EventEventMessagingType.EVENT_CREATION_SUCCESSFULL,
+      failureEvent: EventEventMessagingType.EVENT_CREATION_FAILED,
+    });
 
     const redisMock = createMock<Redis>();
     const optionsMock = {
@@ -141,10 +151,11 @@ describe('SocialEventCreatedPostProcessor (Integration)', () => {
 
       const broadcastExceptSpy = jest.spyOn(notificationServiceMock, 'broadcastExcept');
       const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
+      const updateStateSpy = jest.spyOn(gatherStateServiceMock, 'updateEventState');
 
-      await postProcessor['processEvents']([{ event, messageId } as never]);
+      await postProcessor['processEvents']([{ event, messageId }]);
 
-      expect(gatherStateServiceMock.updateEventState).toHaveBeenCalledWith(
+      expect(updateStateSpy).toHaveBeenCalledWith(
         event.correlationId,
         'SOCIAL_EVENT_CREATED',
         EventStatus.SUCCESS,
@@ -181,7 +192,7 @@ describe('SocialEventCreatedPostProcessor (Integration)', () => {
     it('should broadcast but not notify if emitterId is missing, and reject due to database constraints', async () => {
       const payloadOverrides = { eventId: 'test-event-123' };
       const event = createEventCreatedEventMock(payloadOverrides);
-      event.emitterId = undefined as unknown as string;
+      event.emitterId = '';
       event.correlationId = 'b0f0a0c0-9c0b-4ef8-bb6d-6bb9bd380a22';
       event.traceId = 'c0f0a0c0-9c0b-4ef8-bb6d-6bb9bd380a33';
       const messageId = 'msg-123';

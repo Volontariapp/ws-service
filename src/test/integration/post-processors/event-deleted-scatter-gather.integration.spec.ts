@@ -49,7 +49,11 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
 
   beforeAll(async () => {
     if (!AppDataSource.isInitialized) {
-      const opts = AppDataSource.options as any;
+      const opts = AppDataSource.options as {
+        type?: string;
+        host?: string;
+        migrations?: unknown[];
+      };
       opts.migrations = [];
       try {
         if (opts.type === 'postgres' && opts.host === 'localhost') {
@@ -198,7 +202,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
     // === STEP 1: Reception of EVENT_DELETED (Initial Trigger) ===
     const eventDeletedMsg: StreamEvent<IEventDeletedPayload> = {
       id: 'event-deleted-msg-id',
-      type: EventEventMessagingType.EVENT_DELETED.toString(),
+      type: EventEventMessagingType.EVENT_DELETED,
       emitter: 'event-service',
       emitterId,
       correlationId,
@@ -213,9 +217,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
       },
     };
 
-    await eventDeletedProcessor['processEvents']([
-      { event: eventDeletedMsg, messageId: 'msg-1' } as any,
-    ]);
+    await eventDeletedProcessor['processEvents']([{ event: eventDeletedMsg, messageId: 'msg-1' }]);
 
     let gatherState = await gatherStateRepository.findOne({ correlationId });
     expect(gatherState).toBeDefined();
@@ -234,7 +236,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
     // === STEP 2: Reception of SOCIAL_EVENT_DELETED_SUCCESS ===
     const socialDeletedMsg: StreamEvent<ISocialEventDeletedSuccessPayload> = {
       id: 'social-deleted-msg-id',
-      type: SocialEventMessagingType.SOCIAL_EVENT_DELETED_SUCCESS.toString(),
+      type: SocialEventMessagingType.SOCIAL_EVENT_DELETED_SUCCESS,
       emitter: 'social-service',
       emitterId: '',
       correlationId,
@@ -250,7 +252,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
     };
 
     await socialSuccessProcessor['processEvents']([
-      { event: socialDeletedMsg, messageId: 'msg-2' } as any,
+      { event: socialDeletedMsg, messageId: 'msg-2' },
     ]);
 
     gatherState = await gatherStateRepository.findOne({ correlationId });
@@ -268,7 +270,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
     // === STEP 3: Reception of POST_EVENT_DELETED_SUCCESS ===
     const postDeletedMsg: StreamEvent<IPostEventDeletedSuccessPayload> = {
       id: 'post-deleted-msg-id',
-      type: PostEventMessagingType.POST_EVENT_DELETED_SUCCESS.toString(),
+      type: PostEventMessagingType.POST_EVENT_DELETED_SUCCESS,
       emitter: 'post-service',
       emitterId: '',
       correlationId,
@@ -283,9 +285,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
       },
     };
 
-    await postSuccessProcessor['processEvents']([
-      { event: postDeletedMsg, messageId: 'msg-3' } as any,
-    ]);
+    await postSuccessProcessor['processEvents']([{ event: postDeletedMsg, messageId: 'msg-3' }]);
 
     // State completed, so gathered state is deleted
     gatherState = await gatherStateRepository.findOne({ correlationId });
@@ -322,7 +322,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
     // === STEP 1: EVENT_DELETED ===
     const eventDeletedMsg: StreamEvent<IEventDeletedPayload> = {
       id: 'event-deleted-msg-id-2',
-      type: EventEventMessagingType.EVENT_DELETED.toString(),
+      type: EventEventMessagingType.EVENT_DELETED,
       emitter: 'event-service',
       emitterId,
       correlationId,
@@ -336,14 +336,12 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
         },
       },
     };
-    await eventDeletedProcessor['processEvents']([
-      { event: eventDeletedMsg, messageId: 'msg-1' } as any,
-    ]);
+    await eventDeletedProcessor['processEvents']([{ event: eventDeletedMsg, messageId: 'msg-1' }]);
 
     // === STEP 2: SOCIAL_EVENT_DELETED_FAILED ===
     const socialFailedMsg: StreamEvent<ISocialEventDeletedFailedPayload> = {
       id: 'social-failed-msg-id',
-      type: SocialEventMessagingType.SOCIAL_EVENT_DELETED_FAILED.toString(),
+      type: SocialEventMessagingType.SOCIAL_EVENT_DELETED_FAILED,
       emitter: 'social-service',
       emitterId: '',
       correlationId,
@@ -358,9 +356,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
         },
       },
     };
-    await socialFailedProcessor['processEvents']([
-      { event: socialFailedMsg, messageId: 'msg-2' } as any,
-    ]);
+    await socialFailedProcessor['processEvents']([{ event: socialFailedMsg, messageId: 'msg-2' }]);
 
     // Gather state is not deleted yet (still waiting for post deletion)
     let gatherState = await gatherStateRepository.findOne({ correlationId });
@@ -377,7 +373,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
     // === STEP 3: POST_EVENT_DELETED_SUCCESS ===
     const postDeletedMsg: StreamEvent<IPostEventDeletedSuccessPayload> = {
       id: 'post-deleted-msg-id-2',
-      type: PostEventMessagingType.POST_EVENT_DELETED_SUCCESS.toString(),
+      type: PostEventMessagingType.POST_EVENT_DELETED_SUCCESS,
       emitter: 'post-service',
       emitterId: '',
       correlationId,
@@ -391,33 +387,25 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
         },
       },
     };
-    // We expect the completion handler to throw an Error indicating completion failure
-    await expect(
-      postSuccessProcessor['processEvents']([{ event: postDeletedMsg, messageId: 'msg-3' } as any]),
-    ).rejects.toThrow(
-      'Gather state completion failed. Failed events: social_event.deleted_success',
-    );
+    // Process completion handler when a sub-event failed
+    await postSuccessProcessor['processEvents']([{ event: postDeletedMsg, messageId: 'msg-3' }]);
 
-    // Since the saga failed, the gather state is NOT deleted from the database
+    // The gather state IS deleted from database upon completion
     gatherState = await gatherStateRepository.findOne({ correlationId });
-    expect(gatherState).toBeDefined();
-    expect(gatherState?.gatherEventsState['social_event.deleted_success'].status).toBe(
-      EventStatus.FAILED,
-    );
-    expect(gatherState?.gatherEventsState['post_event.deleted_success'].status).toBe(
-      EventStatus.SUCCESS,
-    );
+    expect(gatherState).toBeNull();
 
-    // WS failure notified to emitter (dispatched before throwing the error)
+    // WS failure notified to emitter (dispatched before persisting outbox event)
     expect(notifyUserSpy).toHaveBeenCalledWith(
       emitterId,
       WebsocketMessagingType.EVENT_DELETION_FAILED,
       expect.objectContaining({ eventId, failedEvents: ['social_event.deleted_success'] }),
     );
 
-    // No outbox event written for failures
+    // Outbox failure event is written to event_queue for saga compensation
     const eventQueueRepo = AppDataSource.getRepository(EventQueueModel);
     const outboxEvents = await eventQueueRepo.find();
-    expect(outboxEvents).toHaveLength(0);
+    expect(outboxEvents).toHaveLength(1);
+    expect(outboxEvents[0].type).toBe(EventEventMessagingType.EVENT_DELETION_FAILED);
+    expect(outboxEvents[0].correlationId).toBe(correlationId);
   });
 });
