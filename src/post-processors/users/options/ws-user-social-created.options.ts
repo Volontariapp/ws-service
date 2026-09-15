@@ -1,13 +1,13 @@
 import { AppConfigService } from '../../../config/app-config.service.js';
 import { Streams } from '@volontariapp/shared';
 import { getEventStreamName } from '@volontariapp/messaging';
-import { WS_USER_CREATED_POST_PROCESSOR_OPTIONS } from '../../options/constants.js';
+import { WS_USER_SOCIAL_CREATED_POST_PROCESSOR_OPTIONS } from '../../options/constants.js';
 
-export const wsUserCreatedOptionsProvider = {
-  provide: WS_USER_CREATED_POST_PROCESSOR_OPTIONS,
+export const wsUserSocialCreatedOptionsProvider = {
+  provide: WS_USER_SOCIAL_CREATED_POST_PROCESSOR_OPTIONS,
   useFactory: (appConfig: AppConfigService) => ({
-    groupName: appConfig.config.postProcessor.groupName,
-    streamName: getEventStreamName(Streams.USER_CREATED),
+    groupName: 'SocialConsumer',
+    streamName: getEventStreamName(Streams.WS_USER_CREATED_FEEDBACK),
     batchSize: appConfig.config.postProcessor.batchSize,
     blockTimeout: appConfig.config.postProcessor.blockTimeout,
     idempotencyTtlSeconds: appConfig.config.postProcessor.idempotencyTtlSeconds,
