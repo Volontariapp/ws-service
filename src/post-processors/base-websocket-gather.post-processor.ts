@@ -34,10 +34,15 @@ export abstract class BaseWebSocketGatherPostProcessor<
       : aggregationConfig.failureEvent;
     const wsType = getWsEventForEvent(eventType);
 
-    const triggerPayload = metadata.payload as { eventId: string };
+    const { eventId, postId, userId } = this.extractPayloadIds(metadata.payload);
     const wsPayload = result.isSuccess
       ? metadata.payload
-      : { eventId: triggerPayload.eventId, failedEvents: result.failedEvents };
+      : {
+          ...(eventId ? { eventId } : {}),
+          ...(postId ? { postId } : {}),
+          ...(userId ? { userId } : {}),
+          failedEvents: result.failedEvents,
+        };
 
     if (metadata.emitterId) {
       if (result.isSuccess) {
