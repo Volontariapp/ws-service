@@ -184,6 +184,7 @@ describe('SocialEventCreatedPostProcessor (Integration)', () => {
       expect(inserted.payload).toEqual({
         after: {
           eventId: 'test-event-123',
+          organizerId: organizerId,
           userId: organizerId,
         },
       });
