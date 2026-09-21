@@ -1,4 +1,4 @@
-import { BaseGatherPostProcessor } from '../base-gather.post-processor.js';
+import { BaseGatherCreatorPostProcessor } from '../base-gather.post-processor.js';
 import { Injectable } from '@nestjs/common';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
@@ -6,7 +6,7 @@ import { PostEventMessagingType } from '@volontariapp/messaging';
 import { GatherStateService } from '../../core/services/gather-state.service.js';
 
 @Injectable()
-export class PostDeletedPostProcessor extends BaseGatherPostProcessor<
+export class PostDeletedPostProcessor extends BaseGatherCreatorPostProcessor<
   PostEventMessagingType.POST_DELETED,
   PostEventMessagingType.POST_DELETED
 > {

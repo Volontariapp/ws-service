@@ -17,6 +17,11 @@ export interface IGatherEventPayload {
   userId?: string;
 }
 
+export interface IGatherCompletionOutput {
+  targetServices: Streams[];
+  payload: Record<string, unknown>;
+}
+
 export abstract class BaseGatherPostProcessor<
   TEvent extends EventMessagingType,
   TTrigger extends EventMessagingType = EventMessagingType,
@@ -37,6 +42,15 @@ export abstract class BaseGatherPostProcessor<
     metadata: GatherStateMetadata<TTrigger>,
     result: GatherUpdateResult<TTrigger>,
   ): Promise<void> | void;
+
+  /**
+   * Abstract hook for post-processors to build domain-specific completion output
+   * (targetServices and payload structure) when a Scatter-Gather saga resolves.
+   */
+  protected abstract buildCompletionOutput(
+    result: GatherUpdateResult<TTrigger>,
+    metadata: GatherStateMetadata<TTrigger>,
+  ): IGatherCompletionOutput;
 
   protected async processEvents(events: BatchEventItem<TEvent>[]): Promise<void> {
     await Promise.all(
@@ -119,15 +133,11 @@ export abstract class BaseGatherPostProcessor<
 
       await transactionalGatherStateRepo.delete(gatherStateId);
 
-      const triggerPayload = metadata.payload as { eventId?: string } | undefined;
-      const eventId = triggerPayload?.eventId ?? '';
+      const { targetServices, payload } = this.buildCompletionOutput(result, metadata);
 
       const eventType = result.isSuccess
         ? aggregationConfig.successEvent
         : aggregationConfig.failureEvent;
-      const targetServices = result.isSuccess
-        ? [Streams.EVENT_SUCCESSFULLY_CREATED]
-        : [Streams.WS_EVENT_CREATED_FEEDBACK];
 
       await transactionalEventQueueRepo.create({
         type: eventType,
@@ -138,14 +148,20 @@ export abstract class BaseGatherPostProcessor<
         version: 1,
         payload: {
           before: undefined,
-          after: {
-            eventId,
-            userId: metadata.emitterId ?? null,
-            ...(result.isSuccess ? {} : { failedEvents: result.failedEvents ?? null }),
-          },
+          after: payload as never,
         },
         targetServices,
       });
     });
   }
 }
+
+export abstract class BaseGatherCreatorPostProcessor<
+  TEvent extends EventMessagingType,
+  TTrigger extends EventMessagingType = EventMessagingType,
+> extends BaseGatherPostProcessor<TEvent, TTrigger> {
+  protected override buildCompletionOutput(): IGatherCompletionOutput {
+    return { targetServices: [], payload: {} };
+  }
+}
+

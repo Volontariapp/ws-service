@@ -4210,6 +4210,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@volontariapp/contracts@npm:4.3.7":
+  version: 4.3.7
+  resolution: "@volontariapp/contracts@npm:4.3.7"
+  dependencies:
+    "@volontariapp/logger": "npm:0.2.7"
+    protobufjs: "npm:^7.5.8"
+  checksum: 10c0/b5b7d97b3734284c408bcaa28e732b7047463735fbef6e7c32ad90049825b17c810a36bb1fe125251379c50ef703bafdd7e170fe657eebdab1f1cb5c8c6454be
+  languageName: node
+  linkType: hard
+
 "@volontariapp/database@npm:3.4.13, @volontariapp/database@npm:^3.4.13":
   version: 3.4.13
   resolution: "@volontariapp/database@npm:3.4.13"
@@ -4345,13 +4355,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/messaging@npm:2.15.0, @volontariapp/messaging@npm:^2.15.0":
+"@volontariapp/messaging@npm:2.15.0":
   version: 2.15.0
   resolution: "@volontariapp/messaging@npm:2.15.0"
   dependencies:
     "@volontariapp/contracts": "npm:4.3.6"
     "@volontariapp/shared": "npm:0.9.0"
   checksum: 10c0/22c251eea79fa30b4d19cb1820c6e566659d95aa6c336452fce0f4ccd05db35e8be7f4c2e1212f574227aa26738f3ba89157e1c31fcbf8d0865b36cdc4eb4c32
+  languageName: node
+  linkType: hard
+
+"@volontariapp/messaging@npm:^2.17.0":
+  version: 2.17.0
+  resolution: "@volontariapp/messaging@npm:2.17.0"
+  dependencies:
+    "@volontariapp/contracts": "npm:4.3.7"
+    "@volontariapp/shared": "npm:0.9.1"
+  checksum: 10c0/e76f82d48adfd08b8caab3c387150250b5741a8846384088a0e4096852efcd6accd836ac6de22c622b37acf1cf1a2d5c70cd209932d7ff7deb8d94cbf0c5d426
   languageName: node
   linkType: hard
 
@@ -4411,6 +4431,13 @@ __metadata:
   version: 0.9.0
   resolution: "@volontariapp/shared@npm:0.9.0"
   checksum: 10c0/4c584954e4688c83f157ab93996a2b3f6ab24ba0871bd74a986f0249dd713639082bb13948c81c9c299f47b7350c4506af89d746cfdf26f1a6b16a6b4064486f
+  languageName: node
+  linkType: hard
+
+"@volontariapp/shared@npm:0.9.1":
+  version: 0.9.1
+  resolution: "@volontariapp/shared@npm:0.9.1"
+  checksum: 10c0/119c44cacd46d5567b6f00775e4f69a4cf824aeeb45ad4c90c9ac66f47e6590fba8168f5dd54a830ca8a2b56d9af15a4b963e1d8070efc7ef1ed9b55cf53216d
   languageName: node
   linkType: hard
 
@@ -11931,7 +11958,7 @@ __metadata:
     "@volontariapp/health-check": "npm:^1.0.6"
     "@volontariapp/health-check-nest": "npm:^0.1.37"
     "@volontariapp/logger": "npm:^0.2.7"
-    "@volontariapp/messaging": "npm:^2.15.0"
+    "@volontariapp/messaging": "npm:^2.17.0"
     "@volontariapp/monitoring": "npm:^2.1.7"
     "@volontariapp/post-processors": "npm:^3.2.17"
     "@volontariapp/shared": "npm:^0.9.0"
