@@ -44,34 +44,13 @@ export abstract class BaseGatherPostProcessor<
   ): Promise<void> | void;
 
   /**
-   * Hook for non-creator post-processors to build domain-specific completion output
+   * Abstract hook for post-processors to build domain-specific completion output
    * (targetServices and payload structure) when a Scatter-Gather saga resolves.
    */
-  protected buildCompletionOutput(
+  protected abstract buildCompletionOutput(
     result: GatherUpdateResult<TTrigger>,
     metadata: GatherStateMetadata<TTrigger>,
-  ): IGatherCompletionOutput {
-    const triggerPayload = metadata.payload as Record<string, unknown> | undefined;
-    const entityId =
-      (triggerPayload?.eventId as string) ??
-      (triggerPayload?.postId as string) ??
-      (triggerPayload?.userId as string) ??
-      (triggerPayload?.id as string) ??
-      '';
-
-    const targetServices: Streams[] = result.isSuccess
-      ? [Streams.EVENT_SUCCESSFULLY_CREATED]
-      : [Streams.WS_EVENT_CREATED_FEEDBACK];
-
-    return {
-      targetServices,
-      payload: {
-        eventId: entityId,
-        userId: metadata.emitterId ?? null,
-        ...(result.isSuccess ? {} : { failedEvents: result.failedEvents ?? null }),
-      },
-    };
-  }
+  ): IGatherCompletionOutput;
 
   protected async processEvents(events: BatchEventItem<TEvent>[]): Promise<void> {
     await Promise.all(
@@ -176,3 +155,13 @@ export abstract class BaseGatherPostProcessor<
     });
   }
 }
+
+export abstract class BaseGatherCreatorPostProcessor<
+  TEvent extends EventMessagingType,
+  TTrigger extends EventMessagingType = EventMessagingType,
+> extends BaseGatherPostProcessor<TEvent, TTrigger> {
+  protected override buildCompletionOutput(): IGatherCompletionOutput {
+    return { targetServices: [], payload: {} };
+  }
+}
+
