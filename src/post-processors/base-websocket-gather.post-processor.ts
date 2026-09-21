@@ -21,7 +21,7 @@ export abstract class BaseWebSocketGatherPostProcessor<
     triggerEvent: TTrigger,
     expectedKey: string,
     eventStatus: EventStatus,
-    protected readonly sagaGatherType?: SagaGatherType,
+    protected readonly sagaGatherType: SagaGatherType,
   ) {
     super(redisClient, options, gatherStateService, triggerEvent, false, expectedKey, eventStatus);
   }
@@ -67,19 +67,10 @@ export abstract class BaseWebSocketGatherPostProcessor<
     metadata: GatherStateMetadata<TTrigger>,
   ): IGatherCompletionOutput {
     const triggerPayload = (metadata.payload ?? {}) as Record<string, unknown>;
-
-    let targetServices: Streams[];
-    if (this.sagaGatherType) {
-      const config = getGatherCompletionConfig(this.sagaGatherType);
-      targetServices = [config.stream as Streams];
-    } else {
-      targetServices = result.isSuccess
-        ? [Streams.EVENT_SUCCESSFULLY_CREATED]
-        : [Streams.WS_EVENT_CREATED_FEEDBACK];
-    }
+    const config = getGatherCompletionConfig(this.sagaGatherType);
 
     return {
-      targetServices,
+      targetServices: [config.stream as Streams],
       payload: {
         ...triggerPayload,
         userId: metadata.emitterId ?? null,

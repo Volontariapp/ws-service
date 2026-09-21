@@ -2,7 +2,7 @@ import { BaseWebSocketGatherPostProcessor } from '../base-websocket-gather.post-
 import { Injectable } from '@nestjs/common';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
-import { SocialEventMessagingType, EventEventMessagingType } from '@volontariapp/messaging';
+import { SocialEventMessagingType, EventEventMessagingType, SagaGatherType } from '@volontariapp/messaging';
 import { EventStatus } from '@volontariapp/database';
 import { NotificationService } from '../../gateways/notification.service.js';
 import { GatherStateService } from '../../core/services/gather-state.service.js';
@@ -26,6 +26,7 @@ export class SocialEventCreatedPostProcessor extends BaseWebSocketGatherPostProc
       EventEventMessagingType.EVENT_CREATED,
       'SOCIAL_EVENT_CREATED',
       EventStatus.SUCCESS,
+      SagaGatherType.EVENT_CREATION,
     );
   }
 
