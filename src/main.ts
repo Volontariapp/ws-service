@@ -1,3 +1,4 @@
+import './tracing.js';
 import 'reflect-metadata';
 import { existsSync } from 'fs';
 import { dirname, join } from 'path';
