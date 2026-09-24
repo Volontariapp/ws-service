@@ -1,0 +1,9 @@
+schema-version: v2.2
+dd-service: ws-service
+team: volontariapp
+application: volontariapp
+description: Service WebSocket temps réel pour les notifications et mises à jour live.
+tier: frontend-api
+type: web
+repos:
+  - url: https://github.com/Volontariapp/ws-service
