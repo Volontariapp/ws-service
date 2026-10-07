@@ -6,6 +6,7 @@ import { UserCreatedPostProcessor } from './users/user-created.post-processor.js
 import { UserDeletedPostProcessor } from './users/user-deleted.post-processor.js';
 import { UserSocialCreatedPostProcessor } from './users/user-social-created.post-processor.js';
 import { UserSocialDeletedPostProcessor } from './users/user-social-deleted.post-processor.js';
+import { UserBadgeAwardedPostProcessor } from './users/user-badge-awarded.post-processor.js';
 import { SocialEventCreatedPostProcessor } from './events/social-event-created.post-processor.js';
 import { EventCreatedPostProcessor } from './events/event-created.post-processor.js';
 import { GeocodedSuccessPostProcessor } from './events/geocoded-success.post-processor.js';
@@ -53,6 +54,7 @@ import {
   WS_POST_UNLIKED_POST_PROCESSOR_OPTIONS,
   WS_JOB_OUTBOX_SUCCESS_POST_PROCESSOR_OPTIONS,
   WS_JOB_OUTBOX_FAILED_POST_PROCESSOR_OPTIONS,
+  WS_USER_BADGE_AWARDED_POST_PROCESSOR_OPTIONS,
   wsUserCreatedOptionsProvider,
   wsUserDeletedOptionsProvider,
   wsUserSocialCreatedOptionsProvider,
@@ -78,6 +80,7 @@ import {
   wsPostUnlikedOptionsProvider,
   wsJobOutboxSuccessOptionsProvider,
   wsJobOutboxFailedOptionsProvider,
+  wsUserBadgeAwardedOptionsProvider,
 } from './options/index.js';
 import { GatewaysModule } from '../gateways/gateways.module.js';
 import { CoreModule } from '../core/core.module.js';
@@ -115,6 +118,7 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
     wsPostUnlikedOptionsProvider,
     wsJobOutboxSuccessOptionsProvider,
     wsJobOutboxFailedOptionsProvider,
+    wsUserBadgeAwardedOptionsProvider,
     {
       provide: GLOBAL_REDIS_PROVIDER,
       useFactory: (configService: AppConfigService) => {
@@ -656,6 +660,28 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         WS_POST_EVENT_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+      ],
+    },
+    {
+      provide: UserBadgeAwardedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new UserBadgeAwardedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_USER_BADGE_AWARDED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
       ],
     },
   ],

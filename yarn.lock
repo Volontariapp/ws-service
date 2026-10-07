@@ -4110,14 +4110,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/auth@npm:^3.3.13":
-  version: 3.3.13
-  resolution: "@volontariapp/auth@npm:3.3.13"
+"@volontariapp/auth@npm:^3.3.14":
+  version: 3.3.14
+  resolution: "@volontariapp/auth@npm:3.3.14"
   dependencies:
     "@volontariapp/errors": "npm:0.6.3"
     "@volontariapp/errors-nest": "npm:0.13.3"
     "@volontariapp/logger": "npm:0.3.0"
-    "@volontariapp/shared": "npm:0.9.1"
+    "@volontariapp/shared": "npm:0.10.0"
     jose: "npm:^6.2.2"
     reflect-metadata: "npm:^0.2.2"
     rxjs: "npm:^7.8.1"
@@ -4126,7 +4126,7 @@ __metadata:
     "@nestjs/common": ^10.0.0 || ^11.0.0
     "@nestjs/core": ^10.0.0 || ^11.0.0
     "@nestjs/microservices": ^10.0.0 || ^11.0.0
-  checksum: 10c0/73bc79a2cf30b6ba36769da52d98f40b0dad4d1d834edb1e4784b37622845f2de70028c57833b8cf960b942a16718834e7626f0b4f8c0926a7da8f4083e77d85
+  checksum: 10c0/ee78a644aa9bde00467efc7dfa558b58189ac64ad21adc8f3e15e09b4c2d94e0bb9b7cb84413a417af14c73c0ab5ed946dd8c6c5a1a94df001bba2f1edf6cff2
   languageName: node
   linkType: hard
 
@@ -4210,41 +4210,41 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/database@npm:3.4.25, @volontariapp/database@npm:^3.4.25":
-  version: 3.4.25
-  resolution: "@volontariapp/database@npm:3.4.25"
+"@volontariapp/database@npm:3.4.26, @volontariapp/database@npm:^3.4.26":
+  version: 3.4.26
+  resolution: "@volontariapp/database@npm:3.4.26"
   dependencies:
     "@volontariapp/bridge": "npm:1.0.7"
     "@volontariapp/config": "npm:3.2.3"
     "@volontariapp/errors": "npm:0.6.3"
     "@volontariapp/logger": "npm:0.3.0"
-    "@volontariapp/messaging": "npm:2.19.1"
-    "@volontariapp/shared": "npm:0.9.1"
+    "@volontariapp/messaging": "npm:2.20.0"
+    "@volontariapp/shared": "npm:0.10.0"
     class-transformer: "npm:^0.5.1"
     class-validator: "npm:^0.14.1"
     pg: "npm:^8.20.0"
     reflect-metadata: "npm:^0.2.2"
   peerDependencies:
     typeorm: ^0.3.28
-  checksum: 10c0/689bd3ce4a056083cd29d6c3504f28c9f89042c753112af7dcbdae6016e0fc369889aeb19d8663f987d9074255ca55c153004cb7433c7526ad15e9c621317aa4
+  checksum: 10c0/78ef806c620afc295e03cdbe95363c8434358ca24d38693e17790c82d7207d5300d1391c34763594d907cd70be34c7a031fe2e61ef90d130393c2a1923d97ba1
   languageName: node
   linkType: hard
 
-"@volontariapp/domain-event@npm:^3.7.19":
-  version: 3.7.19
-  resolution: "@volontariapp/domain-event@npm:3.7.19"
+"@volontariapp/domain-event@npm:^3.7.20":
+  version: 3.7.20
+  resolution: "@volontariapp/domain-event@npm:3.7.20"
   dependencies:
     "@nestjs/common": "npm:^11.0.1"
     "@volontariapp/contracts": "npm:4.3.14"
-    "@volontariapp/database": "npm:3.4.25"
+    "@volontariapp/database": "npm:3.4.26"
     "@volontariapp/errors": "npm:0.6.3"
     "@volontariapp/errors-nest": "npm:0.13.3"
     "@volontariapp/logger": "npm:0.3.0"
-    "@volontariapp/messaging": "npm:2.19.1"
-    "@volontariapp/outbox": "npm:0.9.62"
-    "@volontariapp/shared": "npm:0.9.1"
+    "@volontariapp/messaging": "npm:2.20.0"
+    "@volontariapp/outbox": "npm:0.9.63"
+    "@volontariapp/shared": "npm:0.10.0"
     class-transformer: "npm:^0.5.1"
-  checksum: 10c0/83178f02a7c604a0dc1f1bcd656655d5b0cceeb257e109b7076020fd6e8ac55624492a7a8e65738e3e721027fba9042d0afa5383d2131a0e6a7e90b72ecb5fe4
+  checksum: 10c0/a8a90e37528ec83f64c58baed4eba56fad164ed9115f6deab50fb448826a9f3982902fe75e4866e6c551685388d573b922c8b51b7601817d276f58a14fb98640
   languageName: node
   linkType: hard
 
@@ -4347,13 +4347,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/messaging@npm:2.19.1, @volontariapp/messaging@npm:^2.19.1":
-  version: 2.19.1
-  resolution: "@volontariapp/messaging@npm:2.19.1"
+"@volontariapp/messaging@npm:2.20.0, @volontariapp/messaging@npm:^2.20.0":
+  version: 2.20.0
+  resolution: "@volontariapp/messaging@npm:2.20.0"
   dependencies:
     "@volontariapp/contracts": "npm:4.3.14"
-    "@volontariapp/shared": "npm:0.9.1"
-  checksum: 10c0/ea1072d89205e8b2a2e25da2a4a713d7c9d2fb86680f469487c8cc5b2c8db0c5f4400cbbd15c35fbd63b8d5d306f886bf33b1418c67c6dfafbd6873997df1818
+    "@volontariapp/shared": "npm:0.10.0"
+  checksum: 10c0/b15c51d7524231523407e23ee53a6709d9629e15782eac837b7efdb3b66234b0d0f689e0f0ebe50240d3f1de852f3a80aa249c9f802d5e3f70cf2b5e46081318
   languageName: node
   linkType: hard
 
@@ -4375,44 +4375,44 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/outbox@npm:0.9.62":
-  version: 0.9.62
-  resolution: "@volontariapp/outbox@npm:0.9.62"
+"@volontariapp/outbox@npm:0.9.63":
+  version: 0.9.63
+  resolution: "@volontariapp/outbox@npm:0.9.63"
   dependencies:
     "@volontariapp/config": "npm:3.2.3"
-    "@volontariapp/database": "npm:3.4.25"
+    "@volontariapp/database": "npm:3.4.26"
     "@volontariapp/errors": "npm:0.6.3"
     "@volontariapp/logger": "npm:0.3.0"
-    "@volontariapp/messaging": "npm:2.19.1"
-    "@volontariapp/shared": "npm:0.9.1"
+    "@volontariapp/messaging": "npm:2.20.0"
+    "@volontariapp/shared": "npm:0.10.0"
     "@volontariapp/testing": "npm:1.0.3"
     bullmq: "npm:^5.76.5"
     ioredis: "npm:^5.10.1"
-  checksum: 10c0/7bd3f414b1a347480e7d3222f86c6eb6df30c969b379676c3097a7db0442a292f3c479b5d58755a22707c2007b72eb1db0b0d64ef2fd7e610e3e5459d069b40d
+  checksum: 10c0/68e1836f46e9c4531a9b57d4c92c4d69aa7a35d8e5e705847415850668a993f4e3757553a3f7cbd76b0bf6de0c187bdf8145cc509d4148b7990c40630e4f982e
   languageName: node
   linkType: hard
 
-"@volontariapp/post-processors@npm:^3.2.29":
-  version: 3.2.29
-  resolution: "@volontariapp/post-processors@npm:3.2.29"
+"@volontariapp/post-processors@npm:^3.2.30":
+  version: 3.2.30
+  resolution: "@volontariapp/post-processors@npm:3.2.30"
   dependencies:
-    "@volontariapp/database": "npm:3.4.25"
+    "@volontariapp/database": "npm:3.4.26"
     "@volontariapp/health-check": "npm:1.0.7"
     "@volontariapp/logger": "npm:0.3.0"
-    "@volontariapp/messaging": "npm:2.19.1"
-    "@volontariapp/outbox": "npm:0.9.62"
-    "@volontariapp/shared": "npm:0.9.1"
+    "@volontariapp/messaging": "npm:2.20.0"
+    "@volontariapp/outbox": "npm:0.9.63"
+    "@volontariapp/shared": "npm:0.10.0"
   peerDependencies:
     "@nestjs/common": ^11.0.0
     ioredis: ^5.0.0
-  checksum: 10c0/f371c0f33359cf6972dc9139b578c4b6ca8dad3fc8e93b42742da3ef868b3daad3e46a48d610af57358742949f5929b0068be7ed5e0091d6c9457596ef29d958
+  checksum: 10c0/ac345d7f1a123807d18b709a3d75c21ccf0395a215f298ab083a66e02f6e561e583e5ba577f33b18795437a7f0576f949250b679a04e1f32a108412c75241b90
   languageName: node
   linkType: hard
 
-"@volontariapp/shared@npm:0.9.1, @volontariapp/shared@npm:^0.9.1":
-  version: 0.9.1
-  resolution: "@volontariapp/shared@npm:0.9.1"
-  checksum: 10c0/119c44cacd46d5567b6f00775e4f69a4cf824aeeb45ad4c90c9ac66f47e6590fba8168f5dd54a830ca8a2b56d9af15a4b963e1d8070efc7ef1ed9b55cf53216d
+"@volontariapp/shared@npm:0.10.0, @volontariapp/shared@npm:^0.10.0":
+  version: 0.10.0
+  resolution: "@volontariapp/shared@npm:0.10.0"
+  checksum: 10c0/8185f939db0210dfef745c58f27afea3a4b72a8c07c151f3eb28b811e59004d326234790731c4e4752f3bba97274b8b42f86975f76159b9c1ba8a17701b800e3
   languageName: node
   linkType: hard
 
@@ -11920,23 +11920,23 @@ __metadata:
     "@types/jest": "npm:^30.0.0"
     "@types/node": "npm:^22.10.7"
     "@types/supertest": "npm:^6.0.2"
-    "@volontariapp/auth": "npm:^3.3.13"
+    "@volontariapp/auth": "npm:^3.3.14"
     "@volontariapp/bridge-nest": "npm:^0.3.18"
     "@volontariapp/config": "npm:^3.2.3"
     "@volontariapp/contracts": "npm:^4.3.14"
     "@volontariapp/contracts-nest": "npm:^3.3.6"
-    "@volontariapp/database": "npm:^3.4.25"
-    "@volontariapp/domain-event": "npm:^3.7.19"
+    "@volontariapp/database": "npm:^3.4.26"
+    "@volontariapp/domain-event": "npm:^3.7.20"
     "@volontariapp/errors": "npm:^0.6.3"
     "@volontariapp/errors-nest": "npm:^0.13.3"
     "@volontariapp/eslint-config": "npm:^2.2.5"
     "@volontariapp/health-check": "npm:^1.0.7"
     "@volontariapp/health-check-nest": "npm:^0.1.38"
     "@volontariapp/logger": "npm:^0.3.0"
-    "@volontariapp/messaging": "npm:^2.19.1"
+    "@volontariapp/messaging": "npm:^2.20.0"
     "@volontariapp/monitoring": "npm:^2.1.8"
-    "@volontariapp/post-processors": "npm:^3.2.29"
-    "@volontariapp/shared": "npm:^0.9.1"
+    "@volontariapp/post-processors": "npm:^3.2.30"
+    "@volontariapp/shared": "npm:^0.10.0"
     "@volontariapp/testing": "npm:^1.0.3"
     "@volontariapp/validation-nest": "npm:^0.1.5"
     axios: "npm:^1.15.0"
