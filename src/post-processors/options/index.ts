@@ -24,3 +24,4 @@ export * from '../posts/options/ws-comment-created.options.js';
 export * from '../posts/options/ws-comment-deleted.options.js';
 export * from '../posts/options/ws-post-liked.options.js';
 export * from '../posts/options/ws-post-unliked.options.js';
+export * from '../users/options/ws-user-badge-awarded.options.js';
