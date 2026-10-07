@@ -9,7 +9,7 @@ import { GatherStateRepository } from '../core/repositories/gather-state.reposit
 import type { EventMessagingType } from '@volontariapp/messaging';
 import type { GatherStateService } from '../core/services/gather-state.service.js';
 import { type GatherUpdateResult } from '../core/services/gather-state.service.js';
-import { Streams } from '@volontariapp/shared';
+import type { Streams } from '@volontariapp/shared';
 
 export interface IGatherEventPayload {
   eventId: string;
@@ -164,4 +164,3 @@ export abstract class BaseGatherCreatorPostProcessor<
     return { targetServices: [], payload: {} };
   }
 }
-

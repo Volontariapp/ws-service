@@ -1,8 +1,15 @@
-import { BaseGatherPostProcessor, type IGatherCompletionOutput } from './base-gather.post-processor.js';
-import { Streams } from '@volontariapp/shared';
+import {
+  BaseGatherPostProcessor,
+  type IGatherCompletionOutput,
+} from './base-gather.post-processor.js';
+import type { Streams } from '@volontariapp/shared';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
-import type { EventMessagingType, WebsocketEventRegistry, SagaGatherType } from '@volontariapp/messaging';
+import type {
+  EventMessagingType,
+  WebsocketEventRegistry,
+  SagaGatherType,
+} from '@volontariapp/messaging';
 import { getWsEventForEvent, getGatherCompletionConfig } from '@volontariapp/messaging';
 import type { EventStatus, GatherStateMetadata } from '@volontariapp/database';
 import type { NotificationService } from '../gateways/notification.service.js';
