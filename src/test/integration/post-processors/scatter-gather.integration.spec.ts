@@ -182,6 +182,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
         before: undefined,
         after: {
           eventId,
+          userId: emitterId,
           localisationName: 'Paris, France',
         },
       },
@@ -304,6 +305,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
         before: undefined,
         after: {
           eventId,
+          userId: emitterId,
           localisationName: 'Lyon, France',
         },
       },

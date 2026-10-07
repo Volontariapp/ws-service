@@ -151,6 +151,8 @@ describe('Post Created Scatter-Gather Flow (Integration)', () => {
         before: undefined,
         after: {
           postId,
+          userId: emitterId,
+          fileIds: [],
         },
       },
     };
