@@ -25,10 +25,8 @@ describe('UserBadgeAwardedPostProcessor (Unit)', () => {
       groupName: 'ws-service',
       consumerName: 'test-consumer',
       batchSize: 10,
-      blockTimeout: 1000,
+      blockMs: 1000,
       idempotencyTtlSeconds: 86400,
-      maxRetries: 3,
-      retryDelayMs: 1000,
     };
 
     postProcessor = new UserBadgeAwardedPostProcessor(
