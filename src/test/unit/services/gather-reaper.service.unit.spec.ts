@@ -5,7 +5,11 @@ import type { GatherStateService } from '../../../core/services/gather-state.ser
 import type { NotificationService } from '../../../gateways/notification.service.js';
 import { createMock } from '@volontariapp/testing';
 import { EventStatus, GatherStateEntity } from '@volontariapp/database';
-import { UserEventMessagingType, WebsocketMessagingType } from '@volontariapp/messaging';
+import {
+  StorageEventMessagingType,
+  UserEventMessagingType,
+  WebsocketMessagingType,
+} from '@volontariapp/messaging';
 import { AppDataSource } from '../../../config/data-source.js';
 
 describe('GatherReaperService (Unit)', () => {
@@ -74,8 +78,8 @@ describe('GatherReaperService (Unit)', () => {
       gatherState.correlationId = 'corr-2';
       gatherState.triggerEvent = UserEventMessagingType.USER_DELETED;
       gatherState.gatherEventsState = {
-        USER_STORAGE_DELETED: {
-          eventType: 'USER_STORAGE_DELETED',
+        [StorageEventMessagingType.USER_STORAGE_DELETED]: {
+          eventType: StorageEventMessagingType.USER_STORAGE_DELETED,
           status: EventStatus.PENDING,
           updatedAt: new Date(Date.now() - 120000).toISOString(), // 120s old
         },
@@ -86,7 +90,7 @@ describe('GatherReaperService (Unit)', () => {
       gatherStateServiceMock.updateEventState.mockResolvedValue({
         isComplete: true,
         isSuccess: false,
-        failedEvents: ['USER_STORAGE_DELETED'],
+        failedEvents: [StorageEventMessagingType.USER_STORAGE_DELETED],
         gatherStateId: 'gather-2',
         metadata: {
           emitterId: 'user-123',
@@ -97,7 +101,7 @@ describe('GatherReaperService (Unit)', () => {
 
       gatherStateServiceMock.getAggregationConfig.mockReturnValue({
         trigger: UserEventMessagingType.USER_DELETED,
-        expects: ['USER_STORAGE_DELETED'],
+        expects: [StorageEventMessagingType.USER_STORAGE_DELETED],
         successEvent: UserEventMessagingType.USER_DELETION_SUCCESSFULL,
         failureEvent: UserEventMessagingType.USER_DELETION_FAILED,
       });
@@ -109,13 +113,15 @@ describe('GatherReaperService (Unit)', () => {
             name: 'MockModel',
           },
           create: jest.fn().mockImplementation((dto) => dto),
-          delete: jest.fn().mockResolvedValue({ affected: 1 }),
-          save: jest.fn().mockResolvedValue({}),
+          delete: jest.fn().mockResolvedValue({ affected: 1 } as never),
+          save: jest.fn().mockResolvedValue({} as never),
         }),
       };
-      jest.spyOn(AppDataSource, 'transaction').mockImplementation(async (cb: never) => {
-        return (cb as (em: unknown) => Promise<unknown>)(mockTransactionalEntityManager);
-      });
+      jest.spyOn(AppDataSource, 'transaction').mockImplementation(((
+        cb: (em: unknown) => Promise<unknown>,
+      ) => {
+        return cb(mockTransactionalEntityManager);
+      }) as never);
 
       const updateEventStateSpy = jest.spyOn(gatherStateServiceMock, 'updateEventState');
       const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
@@ -126,7 +132,7 @@ describe('GatherReaperService (Unit)', () => {
       expect(result).toBe(1);
       expect(updateEventStateSpy).toHaveBeenCalledWith(
         'corr-2',
-        'USER_STORAGE_DELETED',
+        StorageEventMessagingType.USER_STORAGE_DELETED,
         EventStatus.FAILED,
         'Gather timeout reached',
       );
@@ -136,7 +142,7 @@ describe('GatherReaperService (Unit)', () => {
         expect.objectContaining({
           id: 'user-123',
           isEmitter: true,
-          failedEvents: ['USER_STORAGE_DELETED'],
+          failedEvents: [StorageEventMessagingType.USER_STORAGE_DELETED],
         }),
       );
       expect(broadcastExceptSpy).not.toHaveBeenCalled();

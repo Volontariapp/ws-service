@@ -135,10 +135,10 @@ describe('User Deletion Gather Post-Processors (Unit)', () => {
       gatherStateServiceMock.getAggregationConfig.mockReturnValue({
         trigger: UserEventMessagingType.USER_DELETED,
         expects: [
-          'USER_SOCIAL_DELETED',
-          'USER_POST_DELETED',
-          'USER_EVENT_DELETED',
-          'USER_STORAGE_DELETED',
+          SocialEventMessagingType.USER_SOCIAL_DELETED,
+          PostEventMessagingType.USER_POST_DELETED,
+          EventEventMessagingType.USER_EVENT_DELETED,
+          StorageEventMessagingType.USER_STORAGE_DELETED,
         ],
         successEvent: UserEventMessagingType.USER_DELETION_SUCCESSFULL,
         failureEvent: UserEventMessagingType.USER_DELETION_FAILED,
@@ -151,13 +151,15 @@ describe('User Deletion Gather Post-Processors (Unit)', () => {
             name: 'MockModel',
           },
           create: jest.fn().mockImplementation((dto) => dto),
-          delete: jest.fn().mockResolvedValue({ affected: 1 }),
-          save: jest.fn().mockResolvedValue({}),
+          delete: jest.fn().mockResolvedValue({ affected: 1 } as never),
+          save: jest.fn().mockResolvedValue({} as never),
         }),
       };
-      jest.spyOn(AppDataSource, 'transaction').mockImplementation(async (cb: never) => {
-        return (cb as (em: unknown) => Promise<unknown>)(mockEntityManager);
-      });
+      jest.spyOn(AppDataSource, 'transaction').mockImplementation(((
+        cb: (em: unknown) => Promise<unknown>,
+      ) => {
+        return cb(mockEntityManager);
+      }) as never);
 
       const eventItem = {
         messageId: 'msg-2',
