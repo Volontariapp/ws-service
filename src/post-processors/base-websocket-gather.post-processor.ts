@@ -5,12 +5,12 @@ import {
 import type { Streams } from '@volontariapp/shared';
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
-import type {
-  EventMessagingType,
-  WebsocketEventRegistry,
+import type { EventMessagingType, WebsocketEventRegistry } from '@volontariapp/messaging';
+import {
+  getWsEventForEvent,
+  getGatherCompletionConfig,
   SagaGatherType,
 } from '@volontariapp/messaging';
-import { getWsEventForEvent, getGatherCompletionConfig } from '@volontariapp/messaging';
 import type { EventStatus, GatherStateMetadata } from '@volontariapp/database';
 import type { NotificationService } from '../gateways/notification.service.js';
 import type { GatherStateService } from '../core/services/gather-state.service.js';
@@ -29,6 +29,7 @@ export abstract class BaseWebSocketGatherPostProcessor<
     expectedKey: string,
     eventStatus: EventStatus,
     protected readonly sagaGatherType: SagaGatherType,
+    protected readonly isEmitterOnly: boolean = false,
   ) {
     super(redisClient, options, gatherStateService, triggerEvent, false, expectedKey, eventStatus);
   }
@@ -43,25 +44,40 @@ export abstract class BaseWebSocketGatherPostProcessor<
       : aggregationConfig.failureEvent;
     const wsType = getWsEventForEvent(eventType);
 
-    const triggerPayload = metadata.payload as { eventId: string };
+    const triggerPayload = (metadata.payload ?? {}) as Record<string, unknown>;
     const wsPayload = result.isSuccess
       ? metadata.payload
-      : { eventId: triggerPayload.eventId, failedEvents: result.failedEvents };
+      : { ...triggerPayload, failedEvents: result.failedEvents };
+
+    const isTargetOnlyEmitter =
+      this.isEmitterOnly || this.sagaGatherType === SagaGatherType.USER_DELETION;
 
     if (metadata.emitterId) {
-      if (result.isSuccess) {
-        this.notificationService.broadcastExcept(
+      if (isTargetOnlyEmitter) {
+        const isEmitterPayload = {
+          ...(wsPayload as Record<string, unknown>),
+          isEmitter: true,
+        };
+        await this.notificationService.notifyUser(
+          metadata.emitterId,
+          wsType,
+          isEmitterPayload as WebsocketEventRegistry[typeof wsType],
+        );
+      } else {
+        if (result.isSuccess) {
+          this.notificationService.broadcastExcept(
+            metadata.emitterId,
+            wsType,
+            wsPayload as WebsocketEventRegistry[typeof wsType],
+          );
+        }
+        await this.notificationService.notifyUser(
           metadata.emitterId,
           wsType,
           wsPayload as WebsocketEventRegistry[typeof wsType],
         );
       }
-      await this.notificationService.notifyUser(
-        metadata.emitterId,
-        wsType,
-        wsPayload as WebsocketEventRegistry[typeof wsType],
-      );
-    } else {
+    } else if (!isTargetOnlyEmitter) {
       this.notificationService.broadcast(
         wsType,
         wsPayload as WebsocketEventRegistry[typeof wsType],

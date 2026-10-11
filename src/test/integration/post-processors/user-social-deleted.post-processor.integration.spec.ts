@@ -16,6 +16,9 @@ import { createNotificationServiceMock } from '../../helpers/mocks/notification.
 import { createUserSocialDeletedEventMock } from '../../helpers/factories/stream-event.factory.js';
 import {
   SocialEventMessagingType,
+  PostEventMessagingType,
+  EventEventMessagingType,
+  StorageEventMessagingType,
   WebsocketMessagingType,
   UserEventMessagingType,
 } from '@volontariapp/messaging';
@@ -77,7 +80,12 @@ describe('UserSocialDeletedPostProcessor (Integration)', () => {
     gatherStateServiceMock = createMock<GatherStateService>();
     gatherStateServiceMock.getAggregationConfig.mockReturnValue({
       trigger: UserEventMessagingType.USER_DELETED,
-      expects: [SocialEventMessagingType.USER_SOCIAL_DELETED],
+      expects: [
+        SocialEventMessagingType.USER_SOCIAL_DELETED,
+        PostEventMessagingType.USER_POST_DELETED,
+        EventEventMessagingType.USER_EVENT_DELETED,
+        StorageEventMessagingType.USER_STORAGE_DELETED,
+      ],
       successEvent: UserEventMessagingType.USER_DELETION_SUCCESSFULL,
       failureEvent: UserEventMessagingType.USER_DELETION_FAILED,
     });
@@ -147,16 +155,11 @@ describe('UserSocialDeletedPostProcessor (Integration)', () => {
         undefined,
       );
 
-      expect(broadcastExceptSpy).toHaveBeenCalledWith(
-        userId,
-        WebsocketMessagingType.USER_DELETED,
-        event.payload.after,
-      );
-      expect(notifyUserSpy).toHaveBeenCalledWith(
-        userId,
-        WebsocketMessagingType.USER_DELETED,
-        event.payload.after,
-      );
+      expect(broadcastExceptSpy).not.toHaveBeenCalled();
+      expect(notifyUserSpy).toHaveBeenCalledWith(userId, WebsocketMessagingType.USER_DELETED, {
+        ...event.payload.after,
+        isEmitter: true,
+      });
 
       const repo = AppDataSource.getRepository(EventQueueModel);
       const events = await repo.find();
