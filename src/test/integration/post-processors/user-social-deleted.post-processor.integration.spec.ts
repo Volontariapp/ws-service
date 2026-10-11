@@ -77,7 +77,12 @@ describe('UserSocialDeletedPostProcessor (Integration)', () => {
     gatherStateServiceMock = createMock<GatherStateService>();
     gatherStateServiceMock.getAggregationConfig.mockReturnValue({
       trigger: UserEventMessagingType.USER_DELETED,
-      expects: [SocialEventMessagingType.USER_SOCIAL_DELETED],
+      expects: [
+        'USER_SOCIAL_DELETED',
+        'USER_POST_DELETED',
+        'USER_EVENT_DELETED',
+        'USER_STORAGE_DELETED',
+      ],
       successEvent: UserEventMessagingType.USER_DELETION_SUCCESSFULL,
       failureEvent: UserEventMessagingType.USER_DELETION_FAILED,
     });
@@ -147,16 +152,11 @@ describe('UserSocialDeletedPostProcessor (Integration)', () => {
         undefined,
       );
 
-      expect(broadcastExceptSpy).toHaveBeenCalledWith(
-        userId,
-        WebsocketMessagingType.USER_DELETED,
-        event.payload.after,
-      );
-      expect(notifyUserSpy).toHaveBeenCalledWith(
-        userId,
-        WebsocketMessagingType.USER_DELETED,
-        event.payload.after,
-      );
+      expect(broadcastExceptSpy).not.toHaveBeenCalled();
+      expect(notifyUserSpy).toHaveBeenCalledWith(userId, WebsocketMessagingType.USER_DELETED, {
+        ...event.payload.after,
+        isEmitter: true,
+      });
 
       const repo = AppDataSource.getRepository(EventQueueModel);
       const events = await repo.find();

@@ -6,6 +6,14 @@ import { UserCreatedPostProcessor } from './users/user-created.post-processor.js
 import { UserDeletedPostProcessor } from './users/user-deleted.post-processor.js';
 import { UserSocialCreatedPostProcessor } from './users/user-social-created.post-processor.js';
 import { UserSocialDeletedPostProcessor } from './users/user-social-deleted.post-processor.js';
+import { UserSocialDeletedFailedPostProcessor } from './users/user-social-deleted-failed.post-processor.js';
+import { UserPostDeletedPostProcessor } from './users/user-post-deleted.post-processor.js';
+import { UserPostDeletedFailedPostProcessor } from './users/user-post-deleted-failed.post-processor.js';
+import { UserEventDeletedPostProcessor } from './users/user-event-deleted.post-processor.js';
+import { UserEventDeletedFailedPostProcessor } from './users/user-event-deleted-failed.post-processor.js';
+import { UserStorageDeletedPostProcessor } from './users/user-storage-deleted.post-processor.js';
+import { UserStorageDeletedFailedPostProcessor } from './users/user-storage-deleted-failed.post-processor.js';
+import { GatherReaperService } from '../core/services/gather-reaper.service.js';
 import { UserBadgeAwardedPostProcessor } from './users/user-badge-awarded.post-processor.js';
 import { SocialEventCreatedPostProcessor } from './events/social-event-created.post-processor.js';
 import { EventCreatedPostProcessor } from './events/event-created.post-processor.js';
@@ -33,6 +41,13 @@ import {
   WS_USER_DELETED_POST_PROCESSOR_OPTIONS,
   WS_USER_SOCIAL_CREATED_POST_PROCESSOR_OPTIONS,
   WS_USER_SOCIAL_DELETED_POST_PROCESSOR_OPTIONS,
+  WS_USER_SOCIAL_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
+  WS_USER_POST_DELETED_POST_PROCESSOR_OPTIONS,
+  WS_USER_POST_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
+  WS_USER_EVENT_DELETED_POST_PROCESSOR_OPTIONS,
+  WS_USER_EVENT_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
+  WS_USER_STORAGE_DELETED_POST_PROCESSOR_OPTIONS,
+  WS_USER_STORAGE_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
   WS_SOCIAL_EVENT_CREATED_POST_PROCESSOR_OPTIONS,
   WS_EVENT_CREATED_POST_PROCESSOR_OPTIONS,
   WS_EVENT_GEOCODED_POST_PROCESSOR_OPTIONS,
@@ -59,6 +74,13 @@ import {
   wsUserDeletedOptionsProvider,
   wsUserSocialCreatedOptionsProvider,
   wsUserSocialDeletedOptionsProvider,
+  wsUserSocialDeletedFailedOptionsProvider,
+  wsUserPostDeletedOptionsProvider,
+  wsUserPostDeletedFailedOptionsProvider,
+  wsUserEventDeletedOptionsProvider,
+  wsUserEventDeletedFailedOptionsProvider,
+  wsUserStorageDeletedOptionsProvider,
+  wsUserStorageDeletedFailedOptionsProvider,
   wsSocialEventCreatedOptionsProvider,
   wsEventCreatedOptionsProvider,
   wsEventGeocodedOptionsProvider,
@@ -93,10 +115,18 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
 @Module({
   imports: [GatewaysModule, CoreModule],
   providers: [
+    GatherReaperService,
     wsUserCreatedOptionsProvider,
     wsUserDeletedOptionsProvider,
     wsUserSocialCreatedOptionsProvider,
     wsUserSocialDeletedOptionsProvider,
+    wsUserSocialDeletedFailedOptionsProvider,
+    wsUserPostDeletedOptionsProvider,
+    wsUserPostDeletedFailedOptionsProvider,
+    wsUserEventDeletedOptionsProvider,
+    wsUserEventDeletedFailedOptionsProvider,
+    wsUserStorageDeletedOptionsProvider,
+    wsUserStorageDeletedFailedOptionsProvider,
     wsSocialEventCreatedOptionsProvider,
     wsEventCreatedOptionsProvider,
     wsEventGeocodedOptionsProvider,
@@ -208,6 +238,181 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_USER_SOCIAL_DELETED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+        GatherStateService,
+      ],
+    },
+    {
+      provide: UserSocialDeletedFailedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+        gatherStateService: GatherStateService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new UserSocialDeletedFailedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+          gatherStateService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_USER_SOCIAL_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+        GatherStateService,
+      ],
+    },
+    {
+      provide: UserPostDeletedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+        gatherStateService: GatherStateService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new UserPostDeletedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+          gatherStateService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_USER_POST_DELETED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+        GatherStateService,
+      ],
+    },
+    {
+      provide: UserPostDeletedFailedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+        gatherStateService: GatherStateService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new UserPostDeletedFailedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+          gatherStateService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_USER_POST_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+        GatherStateService,
+      ],
+    },
+    {
+      provide: UserEventDeletedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+        gatherStateService: GatherStateService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new UserEventDeletedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+          gatherStateService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_USER_EVENT_DELETED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+        GatherStateService,
+      ],
+    },
+    {
+      provide: UserEventDeletedFailedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+        gatherStateService: GatherStateService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new UserEventDeletedFailedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+          gatherStateService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_USER_EVENT_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+        GatherStateService,
+      ],
+    },
+    {
+      provide: UserStorageDeletedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+        gatherStateService: GatherStateService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new UserStorageDeletedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+          gatherStateService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_USER_STORAGE_DELETED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+        GatherStateService,
+      ],
+    },
+    {
+      provide: UserStorageDeletedFailedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+        gatherStateService: GatherStateService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new UserStorageDeletedFailedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+          gatherStateService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_USER_STORAGE_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
       ],
