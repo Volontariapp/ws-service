@@ -12,6 +12,7 @@ import {
   UserEventMessagingType,
 } from '@volontariapp/messaging';
 import { UserRoles } from '@volontariapp/shared';
+import { SOURCE_TRACEPARENT } from './trace.factory.js';
 
 export const createUserCreatedTriggerEventMock = (
   payloadOverrides: Partial<IUserCreatedPayload> = {},
@@ -29,6 +30,7 @@ export const createUserCreatedTriggerEventMock = (
   emitterId: 'test-user-id',
   correlationId: 'corr-123',
   traceId: 'trace-123',
+  traceparent: SOURCE_TRACEPARENT,
   version: 1,
   createdAt: new Date().toISOString(),
 });
@@ -49,6 +51,7 @@ export const createUserDeletedTriggerEventMock = (
   emitterId: 'test-user-id',
   correlationId: 'corr-123',
   traceId: 'trace-123',
+  traceparent: SOURCE_TRACEPARENT,
   version: 1,
   createdAt: new Date().toISOString(),
 });
@@ -67,6 +70,7 @@ export const createUserCreatedEventMock = (
   emitterId: 'test-user-id',
   correlationId: 'corr-123',
   traceId: 'trace-123',
+  traceparent: SOURCE_TRACEPARENT,
   version: 1,
   createdAt: new Date().toISOString(),
 });
@@ -85,6 +89,7 @@ export const createUserSocialDeletedEventMock = (
   emitterId: 'test-user-id',
   correlationId: 'corr-123',
   traceId: 'trace-123',
+  traceparent: SOURCE_TRACEPARENT,
   version: 1,
   createdAt: new Date().toISOString(),
 });
@@ -92,6 +97,7 @@ export const createUserSocialDeletedEventMock = (
 export const createEventCreatedEventMock = (
   payloadOverrides: Partial<IEventCreatedPayload> = {},
 ): StreamEvent<IEventCreatedPayload> => ({
+  traceparent: SOURCE_TRACEPARENT,
   id: 'test-event-id',
   type: EventEventMessagingType.EVENT_CREATED.toString(),
   payload: {

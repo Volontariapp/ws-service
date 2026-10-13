@@ -57,6 +57,7 @@ describe('UserCreatedPostProcessor (Integration)', () => {
       expect(initializeSpy).toHaveBeenCalledWith('corr-123', UserEventMessagingType.USER_CREATED, {
         emitterId: 'test-user-123',
         traceId: 'trace-123',
+        traceparent: event.traceparent,
         payload: event.payload.after,
       });
     });

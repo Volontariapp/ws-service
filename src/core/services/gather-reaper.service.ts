@@ -2,11 +2,18 @@ import { Injectable, Logger, type OnModuleInit, type OnModuleDestroy } from '@ne
 import { GatherStateRepository } from '../repositories/gather-state.repository.js';
 import { GatherStateService } from './gather-state.service.js';
 import { NotificationService } from '../../gateways/notification.service.js';
-import { EventStatus, GatherStateModel, EventQueueModel } from '@volontariapp/database';
+import {
+  EventStatus,
+  GatherStateModel,
+  EventQueueEntity,
+  EventQueueModel,
+  normalizeTraceparent,
+} from '@volontariapp/database';
 import {
   SagaGatherType,
   getGatherCompletionConfig,
   getWsEventForEvent,
+  type EventMessagingType,
   type WebsocketEventRegistry,
 } from '@volontariapp/messaging';
 import { AppDataSource } from '../../config/data-source.js';
@@ -157,29 +164,39 @@ export class GatherReaperService implements OnModuleInit, OnModuleDestroy {
       const transactionalGatherStateRepo = new GatherStateRepository(
         entityManager.getRepository(GatherStateModel),
       );
-      const transactionalEventQueueRepo = new EventQueueRepository(
+      const transactionalEventQueueRepo = new EventQueueRepository<EventMessagingType>(
         entityManager.getRepository(EventQueueModel),
       );
 
       await transactionalGatherStateRepo.delete(gatherStateId);
 
-      await transactionalEventQueueRepo.create({
-        type: eventType,
-        emitter: 'ws-service',
-        emitterId: metadata.emitterId,
-        traceId: metadata.traceId,
-        correlationId,
-        version: 1,
-        payload: {
-          before: undefined,
-          after: {
-            ...triggerPayload,
-            userId: metadata.emitterId ?? null,
-            ...(result.isSuccess ? {} : { failedEvents: result.failedEvents ?? null }),
-          } as never,
-        },
-        targetServices: [config.stream as Streams],
-      });
+      const emitterId = metadata.emitterId;
+      if (!emitterId) {
+        throw new Error(
+          `Gather state for correlationId ${correlationId} has no emitterId: cannot write the completion event`,
+        );
+      }
+
+      await transactionalEventQueueRepo.create(
+        EventQueueEntity.createFollowUp(
+          {
+            correlationId,
+            traceId: metadata.traceId,
+            traceparent: normalizeTraceparent(metadata.traceparent) ?? '',
+          },
+          {
+            type: eventType,
+            emitter: 'ws-service',
+            emitterId,
+            payload: {
+              ...triggerPayload,
+              userId: metadata.emitterId ?? null,
+              ...(result.isSuccess ? {} : { failedEvents: result.failedEvents ?? null }),
+            } as never,
+            targetServices: [config.stream as Streams],
+          },
+        ),
+      );
     });
   }
 }

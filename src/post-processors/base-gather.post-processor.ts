@@ -2,7 +2,13 @@ import { BatchPostProcessor, type BatchEventItem } from '@volontariapp/post-proc
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
 import type { GatherStateMetadata } from '@volontariapp/database';
-import { EventStatus, EventQueueModel, GatherStateModel } from '@volontariapp/database';
+import {
+  EventStatus,
+  EventQueueEntity,
+  EventQueueModel,
+  GatherStateModel,
+  normalizeTraceparent,
+} from '@volontariapp/database';
 import { EventQueueRepository } from '@volontariapp/outbox';
 import { AppDataSource } from '../config/data-source.js';
 import { GatherStateRepository } from '../core/repositories/gather-state.repository.js';
@@ -66,6 +72,7 @@ export abstract class BaseGatherPostProcessor<
             {
               emitterId: event.emitterId,
               traceId: event.traceId,
+              traceparent: event.traceparent,
               payload: event.payload.after as GatherStateMetadata<TTrigger>['payload'],
             },
           );
@@ -127,7 +134,7 @@ export abstract class BaseGatherPostProcessor<
       const transactionalGatherStateRepo = new GatherStateRepository(
         entityManager.getRepository(GatherStateModel),
       );
-      const transactionalEventQueueRepo = new EventQueueRepository(
+      const transactionalEventQueueRepo = new EventQueueRepository<EventMessagingType>(
         entityManager.getRepository(EventQueueModel),
       );
 
@@ -139,19 +146,29 @@ export abstract class BaseGatherPostProcessor<
         ? aggregationConfig.successEvent
         : aggregationConfig.failureEvent;
 
-      await transactionalEventQueueRepo.create({
-        type: eventType,
-        emitter: 'ws-service',
-        emitterId: metadata.emitterId,
-        traceId: metadata.traceId,
-        correlationId,
-        version: 1,
-        payload: {
-          before: undefined,
-          after: payload as never,
-        },
-        targetServices,
-      });
+      const emitterId = metadata.emitterId;
+      if (!emitterId) {
+        throw new Error(
+          `Gather state for correlationId ${correlationId} has no emitterId: cannot write the completion event`,
+        );
+      }
+
+      await transactionalEventQueueRepo.create(
+        EventQueueEntity.createFollowUp(
+          {
+            correlationId,
+            traceId: metadata.traceId,
+            traceparent: normalizeTraceparent(metadata.traceparent) ?? '',
+          },
+          {
+            type: eventType,
+            emitter: 'ws-service',
+            emitterId,
+            payload: payload as never,
+            targetServices,
+          },
+        ),
+      );
     });
   }
 }

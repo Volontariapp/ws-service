@@ -23,6 +23,7 @@ import { EventQueueModel, GatherStateModel, EventStatus } from '@volontariapp/da
 import { GatherStateService } from '../../../core/services/gather-state.service.js';
 import type { AppConfigService } from '../../../config/app-config.service.js';
 import { GatherStateRepository } from '../../../core/repositories/gather-state.repository.js';
+import { SOURCE_TRACEPARENT } from '../../helpers/factories/trace.factory.js';
 
 describe('Post Deleted Scatter-Gather Flow (Integration)', () => {
   let postDeletedProcessor: PostDeletedPostProcessor;
@@ -139,6 +140,7 @@ describe('Post Deleted Scatter-Gather Flow (Integration)', () => {
 
     // === STEP 1: Reception of POST_DELETED ===
     const postDeletedMsg: StreamEvent<IPostDeletedPayload> = {
+      traceparent: SOURCE_TRACEPARENT,
       id: 'post-deleted-msg-id',
       type: PostEventMessagingType.POST_DELETED,
       emitter: 'post-service',
@@ -168,6 +170,7 @@ describe('Post Deleted Scatter-Gather Flow (Integration)', () => {
 
     // === STEP 2: Reception of POST_SOCIAL_DELETED ===
     const postSocialDeletedMsg: StreamEvent<IPostSocialDeletedPayload> = {
+      traceparent: SOURCE_TRACEPARENT,
       id: 'post-social-deleted-msg-id',
       type: SocialEventMessagingType.POST_SOCIAL_DELETED,
       emitter: 'social-service',
