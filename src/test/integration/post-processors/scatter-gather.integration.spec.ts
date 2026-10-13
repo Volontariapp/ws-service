@@ -34,6 +34,7 @@ import { EventQueueModel, GatherStateModel, EventStatus } from '@volontariapp/da
 import { GatherStateService } from '../../../core/services/gather-state.service.js';
 import type { AppConfigService } from '../../../config/app-config.service.js';
 import { GatherStateRepository } from '../../../core/repositories/gather-state.repository.js';
+import { SOURCE_TRACEPARENT } from '../../helpers/factories/trace.factory.js';
 
 describe('Scatter-Gather Flow (Integration)', () => {
   let eventCreatedProcessor: EventCreatedPostProcessor;
@@ -170,6 +171,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
 
     // === STEP 1: Reception of EVENT_CREATED ===
     const eventCreatedMsg: StreamEvent<IEventCreatedPayload> = {
+      traceparent: SOURCE_TRACEPARENT,
       id: 'event-created-msg-id',
       type: EventEventMessagingType.EVENT_CREATED,
       emitter: 'event-service',
@@ -198,6 +200,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
     expect(gatherState?.gatherEventsState['SOCIAL_EVENT_CREATED'].status).toBe(EventStatus.PENDING);
     expect(gatherState?.metadata?.emitterId).toBe(emitterId);
     expect(gatherState?.metadata?.traceId).toBe(traceId);
+    expect(gatherState?.metadata?.traceparent).toBe(SOURCE_TRACEPARENT);
     const createdPayload = gatherState?.metadata?.payload as IEventCreatedPayload;
     expect(createdPayload.eventId).toBe(eventId);
 
@@ -207,6 +210,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
 
     // === STEP 2: Reception of EVENT_GEOCODED ===
     const eventGeocodedMsg: StreamEvent<IEventGeocodedPayload> = {
+      traceparent: SOURCE_TRACEPARENT,
       id: 'geocoded-msg-id',
       type: EventEventMessagingType.EVENT_GEOCODED,
       emitter: 'geocode-service',
@@ -237,6 +241,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
 
     // === STEP 3: Reception of EVENT_SOCIAL_CREATED ===
     const eventSocialCreatedMsg: StreamEvent<IEventSocialCreatedPayload> = {
+      traceparent: SOURCE_TRACEPARENT,
       id: 'social-created-msg-id',
       type: SocialEventMessagingType.EVENT_SOCIAL_CREATED,
       emitter: 'social-service',
@@ -280,6 +285,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
     expect(outboxEvents[0].type).toBe(EventEventMessagingType.EVENT_CREATION_SUCCESSFULL);
     expect(outboxEvents[0].emitterId).toBe(emitterId);
     expect(outboxEvents[0].traceId).toBe(traceId);
+    expect(outboxEvents[0].traceparent).toBe(SOURCE_TRACEPARENT);
     expect(outboxEvents[0].correlationId).toBe(correlationId);
   });
 
@@ -293,6 +299,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
 
     // === STEP 1: Reception of EVENT_CREATED ===
     const eventCreatedMsg: StreamEvent<IEventCreatedPayload> = {
+      traceparent: SOURCE_TRACEPARENT,
       id: 'event-created-msg-id-2',
       type: EventEventMessagingType.EVENT_CREATED,
       emitter: 'event-service',
@@ -314,6 +321,7 @@ describe('Scatter-Gather Flow (Integration)', () => {
 
     // === STEP 2: Reception of GEOCODED_SUCCESS ===
     const eventGeocodedMsg: StreamEvent<IEventGeocodedPayload> = {
+      traceparent: SOURCE_TRACEPARENT,
       id: 'geocoded-msg-id-2',
       type: EventEventMessagingType.EVENT_GEOCODED,
       emitter: 'geocode-service',

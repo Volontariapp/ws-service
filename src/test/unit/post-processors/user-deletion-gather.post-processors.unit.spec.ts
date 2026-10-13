@@ -21,6 +21,7 @@ import type { GatherStateService } from '../../../core/services/gather-state.ser
 import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import { EventStatus } from '@volontariapp/database';
 import { AppDataSource } from '../../../config/data-source.js';
+import { SOURCE_TRACEPARENT } from '../../helpers/factories/trace.factory.js';
 
 describe('User Deletion Gather Post-Processors (Unit)', () => {
   let redisMock: jest.Mocked<Redis>;
@@ -80,6 +81,7 @@ describe('User Deletion Gather Post-Processors (Unit)', () => {
           emitterId: 'user-1',
           correlationId: 'corr-1',
           traceId: 'trace-1',
+          traceparent: SOURCE_TRACEPARENT,
           createdAt: new Date().toISOString(),
           payload: {
             before: undefined,
@@ -128,6 +130,7 @@ describe('User Deletion Gather Post-Processors (Unit)', () => {
         metadata: {
           emitterId: 'user-1',
           traceId: 'trace-1',
+          traceparent: SOURCE_TRACEPARENT,
           payload: { id: 'user-1' } as never,
         },
       });
@@ -171,6 +174,7 @@ describe('User Deletion Gather Post-Processors (Unit)', () => {
           emitterId: 'user-1',
           correlationId: 'corr-1',
           traceId: 'trace-1',
+          traceparent: SOURCE_TRACEPARENT,
           createdAt: new Date().toISOString(),
           payload: {
             before: undefined,

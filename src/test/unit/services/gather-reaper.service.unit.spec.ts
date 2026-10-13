@@ -11,6 +11,7 @@ import {
   WebsocketMessagingType,
 } from '@volontariapp/messaging';
 import { AppDataSource } from '../../../config/data-source.js';
+import { SOURCE_TRACEPARENT } from '../../helpers/factories/trace.factory.js';
 
 describe('GatherReaperService (Unit)', () => {
   let service: GatherReaperService;
@@ -93,6 +94,7 @@ describe('GatherReaperService (Unit)', () => {
         failedEvents: [StorageEventMessagingType.USER_STORAGE_DELETED],
         gatherStateId: 'gather-2',
         metadata: {
+          traceparent: SOURCE_TRACEPARENT,
           emitterId: 'user-123',
           traceId: 'trace-123',
           payload: { id: 'user-123' } as never,

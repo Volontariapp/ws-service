@@ -25,6 +25,7 @@ import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import { AppDataSource } from '../../../config/data-source.js';
 import { EventQueueModel, EventStatus } from '@volontariapp/database';
 import type { GatherStateService } from '../../../core/services/gather-state.service.js';
+import { SOURCE_TRACEPARENT } from '../../helpers/factories/trace.factory.js';
 
 describe('UserSocialCreatedPostProcessor (Integration)', () => {
   let postProcessor: UserSocialCreatedPostProcessor;
@@ -128,6 +129,7 @@ describe('UserSocialCreatedPostProcessor (Integration)', () => {
         isSuccess: true,
         gatherStateId: 'b0f0a0c0-9c0b-4ef8-bb6d-6bb9bd380a22',
         metadata: {
+          traceparent: SOURCE_TRACEPARENT,
           emitterId: userId,
           traceId: event.traceId,
           payload: event.payload.after,

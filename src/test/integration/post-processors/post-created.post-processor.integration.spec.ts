@@ -23,6 +23,7 @@ import { EventQueueModel, GatherStateModel, EventStatus } from '@volontariapp/da
 import { GatherStateService } from '../../../core/services/gather-state.service.js';
 import type { AppConfigService } from '../../../config/app-config.service.js';
 import { GatherStateRepository } from '../../../core/repositories/gather-state.repository.js';
+import { SOURCE_TRACEPARENT } from '../../helpers/factories/trace.factory.js';
 
 describe('Post Created Scatter-Gather Flow (Integration)', () => {
   let postCreatedProcessor: PostCreatedPostProcessor;
@@ -139,6 +140,7 @@ describe('Post Created Scatter-Gather Flow (Integration)', () => {
 
     // === STEP 1: Reception of POST_CREATED ===
     const postCreatedMsg: StreamEvent<IPostCreatedPayload> = {
+      traceparent: SOURCE_TRACEPARENT,
       id: 'post-created-msg-id',
       type: PostEventMessagingType.POST_CREATED,
       emitter: 'post-service',
@@ -170,6 +172,7 @@ describe('Post Created Scatter-Gather Flow (Integration)', () => {
 
     // === STEP 2: Reception of POST_SOCIAL_CREATED ===
     const postSocialCreatedMsg: StreamEvent<IPostSocialCreatedPayload> = {
+      traceparent: SOURCE_TRACEPARENT,
       id: 'post-social-created-msg-id',
       type: SocialEventMessagingType.POST_SOCIAL_CREATED,
       emitter: 'social-service',

@@ -38,6 +38,7 @@ import { EventQueueModel, GatherStateModel, EventStatus } from '@volontariapp/da
 import { GatherStateService } from '../../../core/services/gather-state.service.js';
 import type { AppConfigService } from '../../../config/app-config.service.js';
 import { GatherStateRepository } from '../../../core/repositories/gather-state.repository.js';
+import { SOURCE_TRACEPARENT } from '../../helpers/factories/trace.factory.js';
 
 describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
   let eventDeletedProcessor: EventDeletedPostProcessor;
@@ -207,6 +208,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
       emitterId,
       correlationId,
       traceId,
+      traceparent: SOURCE_TRACEPARENT,
       version: 1,
       createdAt: new Date().toISOString(),
       payload: {
@@ -241,6 +243,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
       emitterId: '',
       correlationId,
       traceId,
+      traceparent: SOURCE_TRACEPARENT,
       version: 1,
       createdAt: new Date().toISOString(),
       payload: {
@@ -275,6 +278,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
       emitterId: '',
       correlationId,
       traceId,
+      traceparent: SOURCE_TRACEPARENT,
       version: 1,
       createdAt: new Date().toISOString(),
       payload: {
@@ -327,6 +331,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
       emitterId,
       correlationId,
       traceId,
+      traceparent: SOURCE_TRACEPARENT,
       version: 1,
       createdAt: new Date().toISOString(),
       payload: {
@@ -346,6 +351,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
       emitterId: '',
       correlationId,
       traceId,
+      traceparent: SOURCE_TRACEPARENT,
       version: 1,
       createdAt: new Date().toISOString(),
       payload: {
@@ -378,6 +384,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
       emitterId: '',
       correlationId,
       traceId,
+      traceparent: SOURCE_TRACEPARENT,
       version: 1,
       createdAt: new Date().toISOString(),
       payload: {

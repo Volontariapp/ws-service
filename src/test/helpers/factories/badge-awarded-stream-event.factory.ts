@@ -1,6 +1,7 @@
 import type { IBadgePayload, IUserBadgeAwardedPayload, StreamEvent } from '@volontariapp/messaging';
 import { UserEventMessagingType } from '@volontariapp/messaging';
 import type { BatchEventItem } from '@volontariapp/post-processors';
+import { SOURCE_TRACEPARENT } from './trace.factory.js';
 
 export const createBadgePayloadMock = (overrides: Partial<IBadgePayload> = {}): IBadgePayload => ({
   id: 'badge-123',
@@ -29,6 +30,7 @@ export const createUserBadgeAwardedEventMock = (
   emitterId: 'test-user-id',
   correlationId: 'corr-123',
   traceId: 'trace-123',
+  traceparent: SOURCE_TRACEPARENT,
   version: 1,
   createdAt: new Date().toISOString(),
   ...eventOverrides,
