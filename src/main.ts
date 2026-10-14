@@ -26,6 +26,7 @@ function resolveConfigDirectory(): string {
 
 async function bootstrap() {
   const appConfig = loadConfig(resolveConfigDirectory(), CustomConfig);
+  Logger.setDefaultConfig({ format: appConfig.logger.format });
   const logger = new Logger({
     context: 'WS-SERVICE',
     format: appConfig.logger.format,
