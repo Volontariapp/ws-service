@@ -15,6 +15,7 @@ import { UserStorageDeletedPostProcessor } from './users/user-storage-deleted.po
 import { UserStorageDeletedFailedPostProcessor } from './users/user-storage-deleted-failed.post-processor.js';
 import { GatherReaperService } from '../core/services/gather-reaper.service.js';
 import { UserBadgeAwardedPostProcessor } from './users/user-badge-awarded.post-processor.js';
+import { UserImpactScoreCreditedPostProcessor } from './users/user-impact-score-credited.post-processor.js';
 import { SocialEventCreatedPostProcessor } from './events/social-event-created.post-processor.js';
 import { EventCreatedPostProcessor } from './events/event-created.post-processor.js';
 import { GeocodedSuccessPostProcessor } from './events/geocoded-success.post-processor.js';
@@ -70,6 +71,7 @@ import {
   WS_JOB_OUTBOX_SUCCESS_POST_PROCESSOR_OPTIONS,
   WS_JOB_OUTBOX_FAILED_POST_PROCESSOR_OPTIONS,
   WS_USER_BADGE_AWARDED_POST_PROCESSOR_OPTIONS,
+  WS_USER_IMPACT_SCORE_CREDITED_POST_PROCESSOR_OPTIONS,
   wsUserCreatedOptionsProvider,
   wsUserDeletedOptionsProvider,
   wsUserSocialCreatedOptionsProvider,
@@ -103,6 +105,7 @@ import {
   wsJobOutboxSuccessOptionsProvider,
   wsJobOutboxFailedOptionsProvider,
   wsUserBadgeAwardedOptionsProvider,
+  wsUserImpactScoreCreditedOptionsProvider,
 } from './options/index.js';
 import { GatewaysModule } from '../gateways/gateways.module.js';
 import { CoreModule } from '../core/core.module.js';
@@ -149,6 +152,7 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
     wsJobOutboxSuccessOptionsProvider,
     wsJobOutboxFailedOptionsProvider,
     wsUserBadgeAwardedOptionsProvider,
+    wsUserImpactScoreCreditedOptionsProvider,
     {
       provide: GLOBAL_REDIS_PROVIDER,
       useFactory: (configService: AppConfigService) => {
@@ -886,6 +890,28 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_USER_BADGE_AWARDED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+      ],
+    },
+    {
+      provide: UserImpactScoreCreditedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new UserImpactScoreCreditedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_USER_IMPACT_SCORE_CREDITED_POST_PROCESSOR_OPTIONS,
         NotificationService,
       ],
     },
