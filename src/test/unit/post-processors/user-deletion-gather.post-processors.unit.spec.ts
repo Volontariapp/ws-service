@@ -6,11 +6,14 @@ import { UserEventDeletedPostProcessor } from '../../../post-processors/users/us
 import { UserEventDeletedFailedPostProcessor } from '../../../post-processors/users/user-event-deleted-failed.post-processor.js';
 import { UserStorageDeletedPostProcessor } from '../../../post-processors/users/user-storage-deleted.post-processor.js';
 import { UserStorageDeletedFailedPostProcessor } from '../../../post-processors/users/user-storage-deleted-failed.post-processor.js';
+import { UserRankingDeletedPostProcessor } from '../../../post-processors/users/user-ranking-deleted.post-processor.js';
+import { UserRankingDeletedFailedPostProcessor } from '../../../post-processors/users/user-ranking-deleted-failed.post-processor.js';
 import {
   SocialEventMessagingType,
   PostEventMessagingType,
   EventEventMessagingType,
   StorageEventMessagingType,
+  RankingEventMessagingType,
   UserEventMessagingType,
   WebsocketMessagingType,
 } from '@volontariapp/messaging';
@@ -142,6 +145,7 @@ describe('User Deletion Gather Post-Processors (Unit)', () => {
           PostEventMessagingType.USER_POST_DELETED,
           EventEventMessagingType.USER_EVENT_DELETED,
           StorageEventMessagingType.USER_STORAGE_DELETED,
+          RankingEventMessagingType.USER_RANKING_DELETED,
         ],
         successEvent: UserEventMessagingType.USER_DELETION_SUCCESSFULL,
         failureEvent: UserEventMessagingType.USER_DELETION_FAILED,
@@ -296,6 +300,42 @@ describe('User Deletion Gather Post-Processors (Unit)', () => {
     it('should return true for USER_STORAGE_DELETION_FAILED', () => {
       expect(
         processor['shouldProcess'](StorageEventMessagingType.USER_STORAGE_DELETION_FAILED),
+      ).toBe(true);
+    });
+  });
+
+  describe('UserRankingDeletedPostProcessor', () => {
+    let processor: UserRankingDeletedPostProcessor;
+
+    beforeEach(() => {
+      processor = new UserRankingDeletedPostProcessor(
+        redisMock,
+        optionsMock,
+        notificationServiceMock,
+        gatherStateServiceMock,
+      );
+    });
+
+    it('should return true for USER_RANKING_DELETED', () => {
+      expect(processor['shouldProcess'](RankingEventMessagingType.USER_RANKING_DELETED)).toBe(true);
+    });
+  });
+
+  describe('UserRankingDeletedFailedPostProcessor', () => {
+    let processor: UserRankingDeletedFailedPostProcessor;
+
+    beforeEach(() => {
+      processor = new UserRankingDeletedFailedPostProcessor(
+        redisMock,
+        optionsMock,
+        notificationServiceMock,
+        gatherStateServiceMock,
+      );
+    });
+
+    it('should return true for USER_RANKING_DELETION_FAILED', () => {
+      expect(
+        processor['shouldProcess'](RankingEventMessagingType.USER_RANKING_DELETION_FAILED),
       ).toBe(true);
     });
   });
