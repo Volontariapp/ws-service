@@ -10,6 +10,8 @@ export * from '../users/options/ws-user-event-deleted.options.js';
 export * from '../users/options/ws-user-event-deleted-failed.options.js';
 export * from '../users/options/ws-user-storage-deleted.options.js';
 export * from '../users/options/ws-user-storage-deleted-failed.options.js';
+export * from '../users/options/ws-user-ranking-deleted.options.js';
+export * from '../users/options/ws-user-ranking-deleted-failed.options.js';
 export * from '../events/options/ws-social-event-created.options.js';
 export * from '../events/options/ws-event-created.options.js';
 export * from '../events/options/ws-event-geocoded.options.js';

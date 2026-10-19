@@ -80,7 +80,8 @@
           "USER_SOCIAL_DELETED",
           "USER_POST_DELETED",
           "USER_EVENT_DELETED",
-          "USER_STORAGE_DELETED"
+          "USER_STORAGE_DELETED",
+          "USER_RANKING_DELETED"
         ],
         "successEvent": "user.deletion_successfull",
         "failureEvent": "user.deletion_failed"
