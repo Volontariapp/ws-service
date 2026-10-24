@@ -16,6 +16,9 @@ import { UserStorageDeletedFailedPostProcessor } from './users/user-storage-dele
 import { GatherReaperService } from '../core/services/gather-reaper.service.js';
 import { UserBadgeAwardedPostProcessor } from './users/user-badge-awarded.post-processor.js';
 import { UserImpactScoreCreditedPostProcessor } from './users/user-impact-score-credited.post-processor.js';
+import { FileScannedPostProcessor } from './storage/file-scanned.post-processor.js';
+import { FileRejectedPostProcessor } from './storage/file-rejected.post-processor.js';
+import { AttachmentRejectedPostProcessor } from './storage/attachment-rejected.post-processor.js';
 import { SocialEventCreatedPostProcessor } from './events/social-event-created.post-processor.js';
 import { EventCreatedPostProcessor } from './events/event-created.post-processor.js';
 import { GeocodedSuccessPostProcessor } from './events/geocoded-success.post-processor.js';
@@ -72,6 +75,9 @@ import {
   WS_JOB_OUTBOX_FAILED_POST_PROCESSOR_OPTIONS,
   WS_USER_BADGE_AWARDED_POST_PROCESSOR_OPTIONS,
   WS_USER_IMPACT_SCORE_CREDITED_POST_PROCESSOR_OPTIONS,
+  WS_FILE_SCANNED_POST_PROCESSOR_OPTIONS,
+  WS_FILE_REJECTED_POST_PROCESSOR_OPTIONS,
+  WS_ATTACHMENT_REJECTED_POST_PROCESSOR_OPTIONS,
   wsUserCreatedOptionsProvider,
   wsUserDeletedOptionsProvider,
   wsUserSocialCreatedOptionsProvider,
@@ -106,6 +112,9 @@ import {
   wsJobOutboxFailedOptionsProvider,
   wsUserBadgeAwardedOptionsProvider,
   wsUserImpactScoreCreditedOptionsProvider,
+  wsFileScannedOptionsProvider,
+  wsFileRejectedOptionsProvider,
+  wsAttachmentRejectedOptionsProvider,
 } from './options/index.js';
 import { GatewaysModule } from '../gateways/gateways.module.js';
 import { CoreModule } from '../core/core.module.js';
@@ -153,6 +162,9 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
     wsJobOutboxFailedOptionsProvider,
     wsUserBadgeAwardedOptionsProvider,
     wsUserImpactScoreCreditedOptionsProvider,
+    wsFileScannedOptionsProvider,
+    wsFileRejectedOptionsProvider,
+    wsAttachmentRejectedOptionsProvider,
     {
       provide: GLOBAL_REDIS_PROVIDER,
       useFactory: (configService: AppConfigService) => {
@@ -912,6 +924,64 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_USER_IMPACT_SCORE_CREDITED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+      ],
+    },
+    {
+      provide: FileScannedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new FileScannedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [GLOBAL_REDIS_PROVIDER, WS_FILE_SCANNED_POST_PROCESSOR_OPTIONS, NotificationService],
+    },
+    {
+      provide: FileRejectedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new FileRejectedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [GLOBAL_REDIS_PROVIDER, WS_FILE_REJECTED_POST_PROCESSOR_OPTIONS, NotificationService],
+    },
+    {
+      provide: AttachmentRejectedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new AttachmentRejectedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_ATTACHMENT_REJECTED_POST_PROCESSOR_OPTIONS,
         NotificationService,
       ],
     },
