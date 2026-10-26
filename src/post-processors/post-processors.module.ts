@@ -13,6 +13,8 @@ import { UserEventDeletedPostProcessor } from './users/user-event-deleted.post-p
 import { UserEventDeletedFailedPostProcessor } from './users/user-event-deleted-failed.post-processor.js';
 import { UserStorageDeletedPostProcessor } from './users/user-storage-deleted.post-processor.js';
 import { UserStorageDeletedFailedPostProcessor } from './users/user-storage-deleted-failed.post-processor.js';
+import { UserRankingDeletedPostProcessor } from './users/user-ranking-deleted.post-processor.js';
+import { UserRankingDeletedFailedPostProcessor } from './users/user-ranking-deleted-failed.post-processor.js';
 import { GatherReaperService } from '../core/services/gather-reaper.service.js';
 import { UserBadgeAwardedPostProcessor } from './users/user-badge-awarded.post-processor.js';
 import { UserImpactScoreCreditedPostProcessor } from './users/user-impact-score-credited.post-processor.js';
@@ -52,6 +54,8 @@ import {
   WS_USER_EVENT_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
   WS_USER_STORAGE_DELETED_POST_PROCESSOR_OPTIONS,
   WS_USER_STORAGE_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
+  WS_USER_RANKING_DELETED_POST_PROCESSOR_OPTIONS,
+  WS_USER_RANKING_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
   WS_SOCIAL_EVENT_CREATED_POST_PROCESSOR_OPTIONS,
   WS_EVENT_CREATED_POST_PROCESSOR_OPTIONS,
   WS_EVENT_GEOCODED_POST_PROCESSOR_OPTIONS,
@@ -89,6 +93,8 @@ import {
   wsUserEventDeletedFailedOptionsProvider,
   wsUserStorageDeletedOptionsProvider,
   wsUserStorageDeletedFailedOptionsProvider,
+  wsUserRankingDeletedOptionsProvider,
+  wsUserRankingDeletedFailedOptionsProvider,
   wsSocialEventCreatedOptionsProvider,
   wsEventCreatedOptionsProvider,
   wsEventGeocodedOptionsProvider,
@@ -139,6 +145,8 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
     wsUserEventDeletedFailedOptionsProvider,
     wsUserStorageDeletedOptionsProvider,
     wsUserStorageDeletedFailedOptionsProvider,
+    wsUserRankingDeletedOptionsProvider,
+    wsUserRankingDeletedFailedOptionsProvider,
     wsSocialEventCreatedOptionsProvider,
     wsEventCreatedOptionsProvider,
     wsEventGeocodedOptionsProvider,
@@ -429,6 +437,56 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_USER_STORAGE_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+        GatherStateService,
+      ],
+    },
+    {
+      provide: UserRankingDeletedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+        gatherStateService: GatherStateService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new UserRankingDeletedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+          gatherStateService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_USER_RANKING_DELETED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+        GatherStateService,
+      ],
+    },
+    {
+      provide: UserRankingDeletedFailedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+        gatherStateService: GatherStateService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new UserRankingDeletedFailedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+          gatherStateService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_USER_RANKING_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
       ],
