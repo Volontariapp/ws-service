@@ -6,10 +6,11 @@ import {
   StorageEventMessagingType,
   StorageWebsocketMessagingType,
 } from '@volontariapp/messaging';
-import type { PostProcessorOptions, BatchEventItem } from '@volontariapp/post-processors';
+import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
 import { createMock } from '@volontariapp/testing';
 import { createNotificationServiceMock } from '../../../helpers/mocks/notification.service.mock.js';
+import { createBatchAttachmentRejectedItemMock } from '../../../helpers/factories/storage-stream-event.factory.js';
 import type { NotificationService } from '../../../../gateways/notification.service.js';
 
 describe('AttachmentRejectedPostProcessor (Unit)', () => {
@@ -65,24 +66,18 @@ describe('AttachmentRejectedPostProcessor (Unit)', () => {
 
   describe('processEvents', () => {
     it('should notify user via notificationService when event has emitterId', async () => {
-      const batchItem: BatchEventItem<StorageEventMessagingType.ATTACHMENT_REJECTED> = {
-        messageId: 'msg-1',
-        event: {
-          id: 'event-1',
-          type: StorageEventMessagingType.ATTACHMENT_REJECTED,
-          emitterId: 'user-777',
-          createdAt: new Date(),
-          payload: {
-            before: undefined,
-            after: {
-              fileId: 'file-300',
-              entityType: StorageEntityType.POST,
-              entityId: 'post-400',
-              reason: StorageAttachmentRejectionReason.CONTENT_REJECTED,
-            },
-          },
+      const batchItem = createBatchAttachmentRejectedItemMock(
+        {
+          fileId: 'file-300',
+          entityType: StorageEntityType.POST,
+          entityId: 'post-400',
+          reason: StorageAttachmentRejectionReason.CONTENT_REJECTED,
         },
-      };
+        'msg-1',
+        {
+          emitterId: 'user-777',
+        },
+      );
 
       const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
 
@@ -102,24 +97,18 @@ describe('AttachmentRejectedPostProcessor (Unit)', () => {
     });
 
     it('should skip notification when emitterId is absent', async () => {
-      const batchItem: BatchEventItem<StorageEventMessagingType.ATTACHMENT_REJECTED> = {
-        messageId: 'msg-2',
-        event: {
-          id: 'event-2',
-          type: StorageEventMessagingType.ATTACHMENT_REJECTED,
-          emitterId: '',
-          createdAt: new Date(),
-          payload: {
-            before: undefined,
-            after: {
-              fileId: 'file-301',
-              entityType: StorageEntityType.EVENT_COVER,
-              entityId: 'event-500',
-              reason: StorageAttachmentRejectionReason.NOT_FOUND,
-            },
-          },
+      const batchItem = createBatchAttachmentRejectedItemMock(
+        {
+          fileId: 'file-301',
+          entityType: StorageEntityType.EVENT_COVER,
+          entityId: 'event-500',
+          reason: StorageAttachmentRejectionReason.NOT_FOUND,
         },
-      };
+        'msg-2',
+        {
+          emitterId: '',
+        },
+      );
 
       const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
 

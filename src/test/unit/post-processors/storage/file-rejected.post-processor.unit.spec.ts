@@ -6,10 +6,11 @@ import {
   StorageFileRejectionReason,
   StorageWebsocketMessagingType,
 } from '@volontariapp/messaging';
-import type { PostProcessorOptions, BatchEventItem } from '@volontariapp/post-processors';
+import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
 import { createMock } from '@volontariapp/testing';
 import { createNotificationServiceMock } from '../../../helpers/mocks/notification.service.mock.js';
+import { createBatchFileRejectedItemMock } from '../../../helpers/factories/storage-stream-event.factory.js';
 import type { NotificationService } from '../../../../gateways/notification.service.js';
 
 describe('FileRejectedPostProcessor (Unit)', () => {
@@ -67,25 +68,13 @@ describe('FileRejectedPostProcessor (Unit)', () => {
 
   describe('processEvents', () => {
     it('should notify user via notificationService when event has ownerId and rejection reason', async () => {
-      const batchItem: BatchEventItem<StorageEventMessagingType.FILE_REJECTED> = {
-        messageId: 'msg-1',
-        event: {
-          id: 'event-1',
-          type: StorageEventMessagingType.FILE_REJECTED,
-          emitterId: 'emitter-1',
-          createdAt: new Date(),
-          payload: {
-            before: undefined,
-            after: {
-              fileId: 'file-200',
-              entityType: StorageEntityType.USER_AVATAR,
-              entityId: 'user-300',
-              ownerId: 'user-300',
-              reason: StorageFileRejectionReason.MALWARE,
-            },
-          },
-        },
-      };
+      const batchItem = createBatchFileRejectedItemMock({
+        fileId: 'file-200',
+        entityType: StorageEntityType.USER_AVATAR,
+        entityId: 'user-300',
+        ownerId: 'user-300',
+        reason: StorageFileRejectionReason.MALWARE,
+      });
 
       const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
 
@@ -106,25 +95,19 @@ describe('FileRejectedPostProcessor (Unit)', () => {
     });
 
     it('should fallback to event.emitterId if payload.ownerId is empty', async () => {
-      const batchItem: BatchEventItem<StorageEventMessagingType.FILE_REJECTED> = {
-        messageId: 'msg-2',
-        event: {
-          id: 'event-2',
-          type: StorageEventMessagingType.FILE_REJECTED,
-          emitterId: 'emitter-400',
-          createdAt: new Date(),
-          payload: {
-            before: undefined,
-            after: {
-              fileId: 'file-201',
-              entityType: StorageEntityType.EVENT_COVER,
-              entityId: 'event-500',
-              ownerId: '',
-              reason: StorageFileRejectionReason.SIZE_MISMATCH,
-            },
-          },
+      const batchItem = createBatchFileRejectedItemMock(
+        {
+          fileId: 'file-201',
+          entityType: StorageEntityType.EVENT_COVER,
+          entityId: 'event-500',
+          ownerId: '',
+          reason: StorageFileRejectionReason.SIZE_MISMATCH,
         },
-      };
+        'msg-2',
+        {
+          emitterId: 'emitter-400',
+        },
+      );
 
       const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
 
@@ -145,25 +128,19 @@ describe('FileRejectedPostProcessor (Unit)', () => {
     });
 
     it('should skip notification when both ownerId and emitterId are absent', async () => {
-      const batchItem: BatchEventItem<StorageEventMessagingType.FILE_REJECTED> = {
-        messageId: 'msg-3',
-        event: {
-          id: 'event-3',
-          type: StorageEventMessagingType.FILE_REJECTED,
-          emitterId: '',
-          createdAt: new Date(),
-          payload: {
-            before: undefined,
-            after: {
-              fileId: 'file-202',
-              entityType: StorageEntityType.POST,
-              entityId: 'post-600',
-              ownerId: '',
-              reason: StorageFileRejectionReason.UNDECODABLE,
-            },
-          },
+      const batchItem = createBatchFileRejectedItemMock(
+        {
+          fileId: 'file-202',
+          entityType: StorageEntityType.POST,
+          entityId: 'post-600',
+          ownerId: '',
+          reason: StorageFileRejectionReason.UNDECODABLE,
         },
-      };
+        'msg-3',
+        {
+          emitterId: '',
+        },
+      );
 
       const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
 

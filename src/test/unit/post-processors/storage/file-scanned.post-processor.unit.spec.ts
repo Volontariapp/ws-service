@@ -5,10 +5,11 @@ import {
   StorageEventMessagingType,
   StorageWebsocketMessagingType,
 } from '@volontariapp/messaging';
-import type { PostProcessorOptions, BatchEventItem } from '@volontariapp/post-processors';
+import type { PostProcessorOptions } from '@volontariapp/post-processors';
 import type { Redis } from 'ioredis';
 import { createMock } from '@volontariapp/testing';
 import { createNotificationServiceMock } from '../../../helpers/mocks/notification.service.mock.js';
+import { createBatchFileScannedItemMock } from '../../../helpers/factories/storage-stream-event.factory.js';
 import type { NotificationService } from '../../../../gateways/notification.service.js';
 
 describe('FileScannedPostProcessor (Unit)', () => {
@@ -66,24 +67,12 @@ describe('FileScannedPostProcessor (Unit)', () => {
 
   describe('processEvents', () => {
     it('should notify user via notificationService when event has ownerId', async () => {
-      const batchItem: BatchEventItem<StorageEventMessagingType.FILE_SCANNED> = {
-        messageId: 'msg-1',
-        event: {
-          id: 'event-1',
-          type: StorageEventMessagingType.FILE_SCANNED,
-          emitterId: 'emitter-1',
-          createdAt: new Date(),
-          payload: {
-            before: undefined,
-            after: {
-              fileId: 'file-100',
-              entityType: StorageEntityType.USER_AVATAR,
-              entityId: 'user-200',
-              ownerId: 'user-200',
-            },
-          },
-        },
-      };
+      const batchItem = createBatchFileScannedItemMock({
+        fileId: 'file-100',
+        entityType: StorageEntityType.USER_AVATAR,
+        entityId: 'user-200',
+        ownerId: 'user-200',
+      });
 
       const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
 
@@ -103,24 +92,18 @@ describe('FileScannedPostProcessor (Unit)', () => {
     });
 
     it('should fallback to event.emitterId if payload.ownerId is not provided', async () => {
-      const batchItem: BatchEventItem<StorageEventMessagingType.FILE_SCANNED> = {
-        messageId: 'msg-2',
-        event: {
-          id: 'event-2',
-          type: StorageEventMessagingType.FILE_SCANNED,
-          emitterId: 'fallback-user-300',
-          createdAt: new Date(),
-          payload: {
-            before: undefined,
-            after: {
-              fileId: 'file-101',
-              entityType: StorageEntityType.EVENT_COVER,
-              entityId: 'event-500',
-              ownerId: '',
-            },
-          },
+      const batchItem = createBatchFileScannedItemMock(
+        {
+          fileId: 'file-101',
+          entityType: StorageEntityType.EVENT_COVER,
+          entityId: 'event-500',
+          ownerId: '',
         },
-      };
+        'msg-2',
+        {
+          emitterId: 'fallback-user-300',
+        },
+      );
 
       const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
 
@@ -140,24 +123,18 @@ describe('FileScannedPostProcessor (Unit)', () => {
     });
 
     it('should skip notification when both ownerId and emitterId are absent', async () => {
-      const batchItem: BatchEventItem<StorageEventMessagingType.FILE_SCANNED> = {
-        messageId: 'msg-3',
-        event: {
-          id: 'event-3',
-          type: StorageEventMessagingType.FILE_SCANNED,
-          emitterId: '',
-          createdAt: new Date(),
-          payload: {
-            before: undefined,
-            after: {
-              fileId: 'file-102',
-              entityType: StorageEntityType.POST,
-              entityId: 'post-600',
-              ownerId: '',
-            },
-          },
+      const batchItem = createBatchFileScannedItemMock(
+        {
+          fileId: 'file-102',
+          entityType: StorageEntityType.POST,
+          entityId: 'post-600',
+          ownerId: '',
         },
-      };
+        'msg-3',
+        {
+          emitterId: '',
+        },
+      );
 
       const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
 
