@@ -35,3 +35,6 @@ export * from '../posts/options/ws-post-liked.options.js';
 export * from '../posts/options/ws-post-unliked.options.js';
 export * from '../users/options/ws-user-badge-awarded.options.js';
 export * from '../users/options/ws-user-impact-score-credited.options.js';
+export * from '../storage/options/ws-file-scanned.options.js';
+export * from '../storage/options/ws-file-rejected.options.js';
+export * from '../storage/options/ws-attachment-rejected.options.js';
