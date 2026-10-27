@@ -1577,28 +1577,30 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nestjs/microservices@npm:^11.1.14":
-  version: 11.1.26
-  resolution: "@nestjs/microservices@npm:11.1.26"
+"@nestjs/microservices@npm:^12.2.0":
+  version: 12.2.0
+  resolution: "@nestjs/microservices@npm:12.2.0"
   dependencies:
     iterare: "npm:1.2.1"
     tslib: "npm:2.8.1"
   peerDependencies:
     "@grpc/grpc-js": "*"
-    "@nestjs/common": ^11.0.0
-    "@nestjs/core": ^11.0.0
-    "@nestjs/websockets": ^11.0.0
+    "@nats-io/transport-node": "*"
+    "@nestjs/common": ^12.0.0
+    "@nestjs/core": ^12.0.0
+    "@nestjs/websockets": ^12.0.0
     amqp-connection-manager: "*"
     amqplib: "*"
     cache-manager: "*"
     ioredis: "*"
     kafkajs: "*"
     mqtt: "*"
-    nats: "*"
     reflect-metadata: ^0.1.12 || ^0.2.0
     rxjs: ^7.1.0
   peerDependenciesMeta:
     "@grpc/grpc-js":
+      optional: true
+    "@nats-io/transport-node":
       optional: true
     "@nestjs/websockets":
       optional: true
@@ -1614,9 +1616,7 @@ __metadata:
       optional: true
     mqtt:
       optional: true
-    nats:
-      optional: true
-  checksum: 10c0/9ab9a6d181d8740c6ef36084513f6db4e84c330e4c233a16ac0798bf18e85d7f4222557d1d25ea94e7e32d6fcefef23c13f525be96e9e3740c84ba3f4dee8698
+  checksum: 10c0/2832b771941fdc721b63cb5fe36cb9be2992ae936e2cd5836d2d636899415ab649bfd387ca4b068b3df348767e93699051797b822444b90eb5954ed0c4bb063e
   languageName: node
   linkType: hard
 
@@ -11995,7 +11995,7 @@ __metadata:
     "@nestjs/common": "npm:^11.0.1"
     "@nestjs/config": "npm:^4.0.3"
     "@nestjs/core": "npm:^11.0.1"
-    "@nestjs/microservices": "npm:^11.1.14"
+    "@nestjs/microservices": "npm:^12.2.0"
     "@nestjs/platform-express": "npm:^11.0.1"
     "@nestjs/platform-socket.io": "npm:^11.0.1"
     "@nestjs/schematics": "npm:^11.0.0"

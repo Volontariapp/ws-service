@@ -38,7 +38,7 @@
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.0.1",
-    "@nestjs/microservices": "^11.1.14",
+    "@nestjs/microservices": "^12.2.0",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/platform-socket.io": "^11.0.1",
     "@nestjs/swagger": "^11.2.7",
