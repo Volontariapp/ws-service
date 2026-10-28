@@ -41,6 +41,10 @@ jobs:
       - name: Run Tests
         run: yarn test
 
+  security:
+    name: Security Scan
+    uses: Volontariapp/ci-tools/.github/workflows/security-scan.yml@main
+
   validate-versions:
     name: Validate Versions (ws-service)
     runs-on: ubuntu-latest
