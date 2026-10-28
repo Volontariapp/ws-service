@@ -16,7 +16,6 @@ jobs:
         uses: actions/checkout@v7
         with:
           submodules: recursive
-          token: ${{ secrets.ORG_REPO_TOKEN }}
 
       - name: Setup Node & Yarn
         uses: Volontariapp/ci-tools/.github/actions/setup-node-yarn@main
