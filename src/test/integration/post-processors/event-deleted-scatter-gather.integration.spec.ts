@@ -20,8 +20,8 @@ import { createNotificationServiceMock } from '../../helpers/mocks/notification.
 import type {
   StreamEvent,
   IEventDeletedPayload,
-  ISocialEventDeletedSuccessPayload,
-  ISocialEventDeletedFailedPayload,
+  IEventSocialDeletedPayload,
+  IEventSocialDeletionFailedPayload,
   IPostEventDeletedSuccessPayload,
 } from '@volontariapp/messaging';
 import {
@@ -108,7 +108,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
         aggregations: [
           {
             trigger: 'event.deleted',
-            expects: ['social_event.deleted_success', 'post_event.deleted_success'],
+            expects: ['EVENT_SOCIAL_DELETED'],
             successEvent: 'event.deletion_successfull',
             failureEvent: 'event.deletion_failed',
           },
@@ -191,7 +191,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
     jest.clearAllMocks();
   });
 
-  it('should run the complete event deletion Scatter-Gather flow step by step successfully', async () => {
+  it('should complete the event deletion Scatter-Gather flow when post-processor-social confirms', async () => {
     const correlationId = '22222222-3333-4444-5555-666666666666';
     const traceId = 'd0f0a0c0-9c0b-4ef8-bb6d-6bb9bd380a44';
     const emitterId = 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22';
@@ -224,10 +224,7 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
     let gatherState = await gatherStateRepository.findOne({ correlationId });
     expect(gatherState).toBeDefined();
     expect(gatherState?.triggerEvent).toBe(EventEventMessagingType.EVENT_DELETED);
-    expect(gatherState?.gatherEventsState['social_event.deleted_success'].status).toBe(
-      EventStatus.PENDING,
-    );
-    expect(gatherState?.gatherEventsState['post_event.deleted_success'].status).toBe(
+    expect(gatherState?.gatherEventsState['EVENT_SOCIAL_DELETED'].status).toBe(
       EventStatus.PENDING,
     );
     expect(gatherState?.metadata?.emitterId).toBe(emitterId);
@@ -235,12 +232,12 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
     expect(broadcastExceptSpy).not.toHaveBeenCalled();
     expect(notifyUserSpy).not.toHaveBeenCalled();
 
-    // === STEP 2: Reception of SOCIAL_EVENT_DELETED_SUCCESS ===
-    const socialDeletedMsg: StreamEvent<ISocialEventDeletedSuccessPayload> = {
+    // === STEP 2: Reception of EVENT_SOCIAL_DELETED (post-processor-social feedback) ===
+    const socialDeletedMsg: StreamEvent<IEventSocialDeletedPayload> = {
       id: 'social-deleted-msg-id',
-      type: SocialEventMessagingType.SOCIAL_EVENT_DELETED_SUCCESS,
-      emitter: 'social-service',
-      emitterId: '',
+      type: SocialEventMessagingType.EVENT_SOCIAL_DELETED,
+      emitter: 'event-service',
+      emitterId,
       correlationId,
       traceId,
       traceparent: SOURCE_TRACEPARENT,
@@ -257,39 +254,6 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
     await socialSuccessProcessor['processEvents']([
       { event: socialDeletedMsg, messageId: 'msg-2' },
     ]);
-
-    gatherState = await gatherStateRepository.findOne({ correlationId });
-    expect(gatherState).toBeDefined();
-    expect(gatherState?.gatherEventsState['social_event.deleted_success'].status).toBe(
-      EventStatus.SUCCESS,
-    );
-    expect(gatherState?.gatherEventsState['post_event.deleted_success'].status).toBe(
-      EventStatus.PENDING,
-    );
-
-    expect(broadcastExceptSpy).not.toHaveBeenCalled();
-    expect(notifyUserSpy).not.toHaveBeenCalled();
-
-    // === STEP 3: Reception of POST_EVENT_DELETED_SUCCESS ===
-    const postDeletedMsg: StreamEvent<IPostEventDeletedSuccessPayload> = {
-      id: 'post-deleted-msg-id',
-      type: PostEventMessagingType.POST_EVENT_DELETED_SUCCESS,
-      emitter: 'post-service',
-      emitterId: '',
-      correlationId,
-      traceId,
-      traceparent: SOURCE_TRACEPARENT,
-      version: 1,
-      createdAt: new Date().toISOString(),
-      payload: {
-        before: undefined,
-        after: {
-          eventId,
-        },
-      },
-    };
-
-    await postSuccessProcessor['processEvents']([{ event: postDeletedMsg, messageId: 'msg-3' }]);
 
     // State completed, so gathered state is deleted
     gatherState = await gatherStateRepository.findOne({ correlationId });
@@ -315,13 +279,14 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
     expect(outboxEvents[0].correlationId).toBe(correlationId);
   });
 
-  it('should abort and mark as failed if one sub-event fails', async () => {
+  it('should mark the gather as failed when post-processor-social reports a deletion failure', async () => {
     const correlationId = '33333333-4444-5555-6666-777777777777';
     const traceId = 'e0f0a0c0-9c0b-4ef8-bb6d-6bb9bd380a55';
     const emitterId = 'c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33';
     const eventId = 'event-789';
 
     const notifyUserSpy = jest.spyOn(notificationServiceMock, 'notifyUser');
+    const broadcastExceptSpy = jest.spyOn(notificationServiceMock, 'broadcastExcept');
 
     // === STEP 1: EVENT_DELETED ===
     const eventDeletedMsg: StreamEvent<IEventDeletedPayload> = {
@@ -343,12 +308,12 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
     };
     await eventDeletedProcessor['processEvents']([{ event: eventDeletedMsg, messageId: 'msg-1' }]);
 
-    // === STEP 2: SOCIAL_EVENT_DELETED_FAILED ===
-    const socialFailedMsg: StreamEvent<ISocialEventDeletedFailedPayload> = {
+    // === STEP 2: EVENT_SOCIAL_DELETION_FAILED ===
+    const socialFailedMsg: StreamEvent<IEventSocialDeletionFailedPayload> = {
       id: 'social-failed-msg-id',
-      type: SocialEventMessagingType.SOCIAL_EVENT_DELETED_FAILED,
-      emitter: 'social-service',
-      emitterId: '',
+      type: SocialEventMessagingType.EVENT_SOCIAL_DELETION_FAILED,
+      emitter: 'event-service',
+      emitterId,
       correlationId,
       traceId,
       traceparent: SOURCE_TRACEPARENT,
@@ -358,55 +323,22 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
         before: undefined,
         after: {
           eventId,
-          errorReason: 'Neo4j connection timeout',
         },
       },
     };
     await socialFailedProcessor['processEvents']([{ event: socialFailedMsg, messageId: 'msg-2' }]);
 
-    // Gather state is not deleted yet (still waiting for post deletion)
-    let gatherState = await gatherStateRepository.findOne({ correlationId });
-    expect(gatherState).toBeDefined();
-    expect(gatherState?.gatherEventsState['social_event.deleted_success'].status).toBe(
-      EventStatus.FAILED,
-    );
-    expect(gatherState?.gatherEventsState['post_event.deleted_success'].status).toBe(
-      EventStatus.PENDING,
-    );
-
-    expect(notifyUserSpy).not.toHaveBeenCalled();
-
-    // === STEP 3: POST_EVENT_DELETED_SUCCESS ===
-    const postDeletedMsg: StreamEvent<IPostEventDeletedSuccessPayload> = {
-      id: 'post-deleted-msg-id-2',
-      type: PostEventMessagingType.POST_EVENT_DELETED_SUCCESS,
-      emitter: 'post-service',
-      emitterId: '',
-      correlationId,
-      traceId,
-      traceparent: SOURCE_TRACEPARENT,
-      version: 1,
-      createdAt: new Date().toISOString(),
-      payload: {
-        before: undefined,
-        after: {
-          eventId,
-        },
-      },
-    };
-    // Process completion handler when a sub-event failed
-    await postSuccessProcessor['processEvents']([{ event: postDeletedMsg, messageId: 'msg-3' }]);
-
     // The gather state IS deleted from database upon completion
-    gatherState = await gatherStateRepository.findOne({ correlationId });
+    const gatherState = await gatherStateRepository.findOne({ correlationId });
     expect(gatherState).toBeNull();
 
-    // WS failure notified to emitter (dispatched before persisting outbox event)
+    // WS failure notified to emitter only
     expect(notifyUserSpy).toHaveBeenCalledWith(
       emitterId,
       WebsocketMessagingType.EVENT_DELETION_FAILED,
-      expect.objectContaining({ eventId, failedEvents: ['social_event.deleted_success'] }),
+      expect.objectContaining({ eventId, failedEvents: ['EVENT_SOCIAL_DELETED'] }),
     );
+    expect(broadcastExceptSpy).not.toHaveBeenCalled();
 
     // Outbox failure event is written to event_queue for saga compensation
     const eventQueueRepo = AppDataSource.getRepository(EventQueueModel);
@@ -414,5 +346,56 @@ describe('Event Deleted Scatter-Gather Flow (Integration)', () => {
     expect(outboxEvents).toHaveLength(1);
     expect(outboxEvents[0].type).toBe(EventEventMessagingType.EVENT_DELETION_FAILED);
     expect(outboxEvents[0].correlationId).toBe(correlationId);
+  });
+
+  it('should ignore a post feedback that the event.deleted aggregation does not expect', async () => {
+    const correlationId = '44444444-5555-6666-7777-888888888888';
+    const traceId = 'f0f0a0c0-9c0b-4ef8-bb6d-6bb9bd380a66';
+    const emitterId = 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380a44';
+    const eventId = 'event-999';
+
+    const eventDeletedMsg: StreamEvent<IEventDeletedPayload> = {
+      id: 'event-deleted-msg-id-3',
+      type: EventEventMessagingType.EVENT_DELETED,
+      emitter: 'event-service',
+      emitterId,
+      correlationId,
+      traceId,
+      traceparent: SOURCE_TRACEPARENT,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      payload: {
+        before: undefined,
+        after: {
+          eventId,
+        },
+      },
+    };
+    await eventDeletedProcessor['processEvents']([{ event: eventDeletedMsg, messageId: 'msg-1' }]);
+
+    const postDeletedMsg: StreamEvent<IPostEventDeletedSuccessPayload> = {
+      id: 'post-deleted-msg-id-3',
+      type: PostEventMessagingType.POST_EVENT_DELETED_SUCCESS,
+      emitter: 'event-service',
+      emitterId,
+      correlationId,
+      traceId,
+      traceparent: SOURCE_TRACEPARENT,
+      version: 1,
+      createdAt: new Date().toISOString(),
+      payload: {
+        before: undefined,
+        after: {
+          eventId,
+        },
+      },
+    };
+    await postSuccessProcessor['processEvents']([{ event: postDeletedMsg, messageId: 'msg-2' }]);
+
+    const gatherState = await gatherStateRepository.findOne({ correlationId });
+    expect(gatherState?.gatherEventsState['EVENT_SOCIAL_DELETED'].status).toBe(
+      EventStatus.PENDING,
+    );
+    expect(gatherState?.gatherEventsState['POST_EVENT_DELETED_SUCCESS']).toBeUndefined();
   });
 });

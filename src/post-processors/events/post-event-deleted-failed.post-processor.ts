@@ -28,7 +28,7 @@ export class PostEventDeletedFailedPostProcessor extends BaseWebSocketGatherPost
       gatherStateService,
       notificationService,
       EventEventMessagingType.EVENT_DELETED,
-      'post_event.deleted_success',
+      'POST_EVENT_DELETED_SUCCESS',
       EventStatus.FAILED,
       SagaGatherType.EVENT_DELETION,
     );

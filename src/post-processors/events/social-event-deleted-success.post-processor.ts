@@ -13,7 +13,7 @@ import { GatherStateService } from '../../core/services/gather-state.service.js'
 
 @Injectable()
 export class SocialEventDeletedSuccessPostProcessor extends BaseWebSocketGatherPostProcessor<
-  SocialEventMessagingType.SOCIAL_EVENT_DELETED_SUCCESS,
+  SocialEventMessagingType.EVENT_SOCIAL_DELETED,
   EventEventMessagingType.EVENT_DELETED
 > {
   constructor(
@@ -28,13 +28,13 @@ export class SocialEventDeletedSuccessPostProcessor extends BaseWebSocketGatherP
       gatherStateService,
       notificationService,
       EventEventMessagingType.EVENT_DELETED,
-      'social_event.deleted_success',
+      'EVENT_SOCIAL_DELETED',
       EventStatus.SUCCESS,
       SagaGatherType.EVENT_DELETION,
     );
   }
 
   protected override shouldProcess(eventType: SocialEventMessagingType | string): boolean {
-    return eventType === SocialEventMessagingType.SOCIAL_EVENT_DELETED_SUCCESS.toString();
+    return eventType === SocialEventMessagingType.EVENT_SOCIAL_DELETED.toString();
   }
 }
