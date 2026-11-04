@@ -52,7 +52,7 @@
       },
       {
         "trigger": "event.deleted",
-        "expects": ["social_event.deleted_success", "post_event.deleted_success"],
+        "expects": ["EVENT_SOCIAL_DELETED"],
         "successEvent": "event.deletion_successfull",
         "failureEvent": "event.deletion_failed"
       },
