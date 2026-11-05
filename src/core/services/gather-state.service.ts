@@ -96,37 +96,21 @@ export class GatherStateService {
     status: EventStatus,
     errorReason?: string,
   ): Promise<GatherUpdateResult<TKey>> {
-    const gatherState = (await this.gatherStateRepository.findOne({
+    // Single atomic statement: concurrent acknowledgements of the same gather
+    // cannot overwrite each other (no read-modify-write of the whole column).
+    const gatherState = (await this.gatherStateRepository.setEventState(
       correlationId,
-    })) as GatherStateEntity<TKey> | null;
+      expectedEvent,
+      { status, updatedAt: new Date().toISOString(), errorReason },
+    )) as GatherStateEntity<TKey> | null;
     if (!gatherState) {
-      this.logger.debug(`No active gather state found for correlationId: ${correlationId}`);
-      return { isComplete: false };
-    }
-
-    const gatherEventsState = { ...gatherState.gatherEventsState };
-
-    // Verify if the event is part of the aggregation
-    if (!(expectedEvent in gatherEventsState)) {
       this.logger.debug(
-        `Event ${expectedEvent} is not expected for correlationId: ${correlationId}`,
+        `No active gather state, or event ${expectedEvent} not expected, for correlationId: ${correlationId}`,
       );
       return { isComplete: false };
     }
 
-    // Update the expected event state
-    gatherEventsState[expectedEvent] = {
-      ...gatherEventsState[expectedEvent],
-      status,
-      updatedAt: new Date().toISOString(),
-      errorReason,
-    };
-
-    // Save changes in the database
-    await this.gatherStateRepository.update(gatherState.id, {
-      correlationId: gatherState.correlationId,
-      gatherEventsState,
-    });
+    const gatherEventsState = gatherState.gatherEventsState;
 
     // Check if all expected events are resolved (no longer PENDING)
     const aggregation = this.getAggregationConfig(gatherState.triggerEvent);
