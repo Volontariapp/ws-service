@@ -24,6 +24,7 @@ import { AttachmentRejectedPostProcessor } from './storage/attachment-rejected.p
 import { SocialEventCreatedPostProcessor } from './events/social-event-created.post-processor.js';
 import { EventCreatedPostProcessor } from './events/event-created.post-processor.js';
 import { GeocodedSuccessPostProcessor } from './events/geocoded-success.post-processor.js';
+import { GeocodingFailedPostProcessor } from './events/geocoding-failed.post-processor.js';
 import { EventDeletedPostProcessor } from './events/event-deleted.post-processor.js';
 import { SocialEventDeletedSuccessPostProcessor } from './events/social-event-deleted-success.post-processor.js';
 import { SocialEventDeletedFailedPostProcessor } from './events/social-event-deleted-failed.post-processor.js';
@@ -59,6 +60,7 @@ import {
   WS_SOCIAL_EVENT_CREATED_POST_PROCESSOR_OPTIONS,
   WS_EVENT_CREATED_POST_PROCESSOR_OPTIONS,
   WS_EVENT_GEOCODED_POST_PROCESSOR_OPTIONS,
+  WS_EVENT_GEOCODING_FAILED_POST_PROCESSOR_OPTIONS,
   WS_EVENT_DELETED_POST_PROCESSOR_OPTIONS,
   WS_SOCIAL_EVENT_DELETED_SUCCESS_POST_PROCESSOR_OPTIONS,
   WS_SOCIAL_EVENT_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
@@ -98,6 +100,7 @@ import {
   wsSocialEventCreatedOptionsProvider,
   wsEventCreatedOptionsProvider,
   wsEventGeocodedOptionsProvider,
+  wsEventGeocodingFailedOptionsProvider,
   wsEventDeletedOptionsProvider,
   wsSocialEventDeletedSuccessOptionsProvider,
   wsSocialEventDeletedFailedOptionsProvider,
@@ -150,6 +153,7 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
     wsSocialEventCreatedOptionsProvider,
     wsEventCreatedOptionsProvider,
     wsEventGeocodedOptionsProvider,
+    wsEventGeocodingFailedOptionsProvider,
     wsEventDeletedOptionsProvider,
     wsSocialEventDeletedSuccessOptionsProvider,
     wsSocialEventDeletedFailedOptionsProvider,
@@ -555,6 +559,31 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_EVENT_GEOCODED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+        GatherStateService,
+      ],
+    },
+    {
+      provide: GeocodingFailedPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+        gatherStateService: GatherStateService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new GeocodingFailedPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+          gatherStateService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_EVENT_GEOCODING_FAILED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
       ],
