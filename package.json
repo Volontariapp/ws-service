@@ -60,7 +60,7 @@
     "@volontariapp/health-check": "^1.0.10",
     "@volontariapp/health-check-nest": "^0.1.42",
     "@volontariapp/logger": "^0.4.0",
-    "@volontariapp/messaging": "^2.29.0",
+    "@volontariapp/messaging": "^2.33.0",
     "@volontariapp/monitoring": "^2.4.0",
     "@volontariapp/post-processors": "^3.4.2",
     "@volontariapp/shared": "^0.17.0",
@@ -75,7 +75,7 @@
     "socket.io-adapter": "^2.5.8"
   },
   "resolutions": {
-    "@volontariapp/messaging": "^2.29.0",
+    "@volontariapp/messaging": "^2.33.0",
     "protobufjs@npm:8.0.0": "npm:8.4.1",
     "multer@npm:2.4.0": "npm:2.5.0",
     "protobufjs@npm:8.0.1": "npm:8.4.1",
@@ -103,7 +103,7 @@
     "@volontariapp/health-check": "^1.0.10",
     "@volontariapp/health-check-nest": "^0.1.42",
     "@volontariapp/logger": "^0.4.0",
-    "@volontariapp/messaging": "^2.29.0",
+    "@volontariapp/messaging": "^2.33.0",
     "@volontariapp/monitoring": "^2.4.0",
     "@volontariapp/post-processors": "^3.4.2",
     "@volontariapp/shared": "^0.17.0",
