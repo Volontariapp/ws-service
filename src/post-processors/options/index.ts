@@ -21,6 +21,7 @@ export * from '../events/options/ws-social-event-deleted-success.options.js';
 export * from '../events/options/ws-social-event-deleted-failed.options.js';
 export * from '../events/options/ws-post-event-deleted-success.options.js';
 export * from '../events/options/ws-post-event-deleted-failed.options.js';
+export * from '../events/options/ws-event-attendance-set.options.js';
 export * from '../posts/options/ws-post-created.options.js';
 export * from '../posts/options/ws-log-post-created.options.js';
 export * from '../posts/options/ws-post-creation-failed.options.js';

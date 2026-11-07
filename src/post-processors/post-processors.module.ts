@@ -17,6 +17,7 @@ import { UserRankingDeletedPostProcessor } from './users/user-ranking-deleted.po
 import { UserRankingDeletedFailedPostProcessor } from './users/user-ranking-deleted-failed.post-processor.js';
 import { GatherReaperService } from '../core/services/gather-reaper.service.js';
 import { UserBadgeAwardedPostProcessor } from './users/user-badge-awarded.post-processor.js';
+import { EventAttendanceSetPostProcessor } from './events/event-attendance-set.post-processor.js';
 import { UserImpactScoreCreditedPostProcessor } from './users/user-impact-score-credited.post-processor.js';
 import { FileScannedPostProcessor } from './storage/file-scanned.post-processor.js';
 import { FileRejectedPostProcessor } from './storage/file-rejected.post-processor.js';
@@ -80,6 +81,7 @@ import {
   WS_JOB_OUTBOX_SUCCESS_POST_PROCESSOR_OPTIONS,
   WS_JOB_OUTBOX_FAILED_POST_PROCESSOR_OPTIONS,
   WS_USER_BADGE_AWARDED_POST_PROCESSOR_OPTIONS,
+  WS_EVENT_ATTENDANCE_SET_POST_PROCESSOR_OPTIONS,
   WS_USER_IMPACT_SCORE_CREDITED_POST_PROCESSOR_OPTIONS,
   WS_FILE_SCANNED_POST_PROCESSOR_OPTIONS,
   WS_FILE_REJECTED_POST_PROCESSOR_OPTIONS,
@@ -120,6 +122,7 @@ import {
   wsJobOutboxSuccessOptionsProvider,
   wsJobOutboxFailedOptionsProvider,
   wsUserBadgeAwardedOptionsProvider,
+  wsEventAttendanceSetOptionsProvider,
   wsUserImpactScoreCreditedOptionsProvider,
   wsFileScannedOptionsProvider,
   wsFileRejectedOptionsProvider,
@@ -173,6 +176,7 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
     wsJobOutboxSuccessOptionsProvider,
     wsJobOutboxFailedOptionsProvider,
     wsUserBadgeAwardedOptionsProvider,
+    wsEventAttendanceSetOptionsProvider,
     wsUserImpactScoreCreditedOptionsProvider,
     wsFileScannedOptionsProvider,
     wsFileRejectedOptionsProvider,
@@ -968,6 +972,28 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         WS_POST_EVENT_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+      ],
+    },
+    {
+      provide: EventAttendanceSetPostProcessor,
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        notificationService: NotificationService,
+      ) => {
+        await redisProvider.connect();
+        const postProcessor = new EventAttendanceSetPostProcessor(
+          redisProvider.getDriver(),
+          options,
+          notificationService,
+        );
+        void postProcessor.start();
+        return postProcessor;
+      },
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_EVENT_ATTENDANCE_SET_POST_PROCESSOR_OPTIONS,
+        NotificationService,
       ],
     },
     {
