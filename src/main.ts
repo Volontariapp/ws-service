@@ -9,6 +9,7 @@ import { AppConfigService } from './config/app-config.service.js';
 import { loadConfig } from '@volontariapp/config';
 import { CustomConfig } from './config/custom-config.js';
 import { Logger } from '@volontariapp/logger';
+import { LIVE_LOG_MASKING } from './modules/live/live.constants.js';
 import { RedisIoAdapter } from './adapters/redis-io.adapter.js';
 
 import { AppDataSource } from './config/data-source.js';
@@ -26,10 +27,13 @@ function resolveConfigDirectory(): string {
 
 async function bootstrap() {
   const appConfig = loadConfig(resolveConfigDirectory(), CustomConfig);
-  Logger.setDefaultConfig({ format: appConfig.logger.format });
+  // Les coordonnees du partage de position ne doivent jamais atteindre les journaux : masquage
+  // par cle, aussi pour les Logger crees ailleurs sans configuration explicite.
+  Logger.setDefaultConfig({ format: appConfig.logger.format, masking: LIVE_LOG_MASKING });
   const logger = new Logger({
     context: 'WS-SERVICE',
     format: appConfig.logger.format,
+    masking: LIVE_LOG_MASKING,
   });
 
   await AppDataSource.initialize();

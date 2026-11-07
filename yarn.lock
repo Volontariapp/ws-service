@@ -4410,6 +4410,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@volontariapp/contracts@npm:4.10.0":
+  version: 4.10.0
+  resolution: "@volontariapp/contracts@npm:4.10.0"
+  dependencies:
+    "@volontariapp/logger": "npm:0.4.0"
+    protobufjs: "npm:^7.5.8"
+  checksum: 10c0/9a1dd7dc5a04dd1dfc02e188d829706786e69d2f339fe9c42c326122df8322680bb27232ee850d07eef73df12b7e386421543c428f0cc9a0112e328f8517fd92
+  languageName: node
+  linkType: hard
+
 "@volontariapp/contracts@npm:4.8.2, @volontariapp/contracts@npm:^4.8.2":
   version: 4.8.2
   resolution: "@volontariapp/contracts@npm:4.8.2"
@@ -4558,13 +4568,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@volontariapp/messaging@npm:^2.29.0":
-  version: 2.29.0
-  resolution: "@volontariapp/messaging@npm:2.29.0"
+"@volontariapp/messaging@npm:^2.33.0":
+  version: 2.33.0
+  resolution: "@volontariapp/messaging@npm:2.33.0"
   dependencies:
-    "@volontariapp/contracts": "npm:4.8.2"
-    "@volontariapp/shared": "npm:0.17.0"
-  checksum: 10c0/2edc71f7063d0e2d4ec600b2f785cab43bc894a168cf0eb301e7992b17002b97178f220e6f92c43cb057bbd27e56ab020b43a258514efbe4bf2cf662f1d28ac7
+    "@volontariapp/contracts": "npm:4.10.0"
+    "@volontariapp/shared": "npm:0.19.0"
+  checksum: 10c0/4ffd13860fec72e89c4b5eb33680a216f054651dada68870143eedd12df195821024d1e46bac299b7e3b3614a2b742dd631ae3ae0f81a256e31c88059dab17bb
   languageName: node
   linkType: hard
 
@@ -4625,6 +4635,13 @@ __metadata:
   version: 0.17.0
   resolution: "@volontariapp/shared@npm:0.17.0"
   checksum: 10c0/c323b7bbdb7ced1bf28855937da31c5288d79408233121a96c9bec97af6fc6a0ff59841c545ac200f0e4cd99ff587748c61586c82e0b618e92e4df8d072a5b8c
+  languageName: node
+  linkType: hard
+
+"@volontariapp/shared@npm:0.19.0":
+  version: 0.19.0
+  resolution: "@volontariapp/shared@npm:0.19.0"
+  checksum: 10c0/a18b506164618969343cf1402041b070ec69e9a500d9f4a60ee4499347f6b7d91c5757af7883e9630da2bb954e39d2045de2c10484238ae43a3cb2ff9db19038
   languageName: node
   linkType: hard
 
@@ -11696,7 +11713,7 @@ __metadata:
     "@volontariapp/health-check": "npm:^1.0.10"
     "@volontariapp/health-check-nest": "npm:^0.1.42"
     "@volontariapp/logger": "npm:^0.4.0"
-    "@volontariapp/messaging": "npm:^2.29.0"
+    "@volontariapp/messaging": "npm:^2.33.0"
     "@volontariapp/monitoring": "npm:^2.4.0"
     "@volontariapp/post-processors": "npm:^3.4.2"
     "@volontariapp/shared": "npm:^0.17.0"
