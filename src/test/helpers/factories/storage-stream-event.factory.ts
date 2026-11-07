@@ -115,4 +115,3 @@ export const createBatchAttachmentRejectedItemMock = (
   messageId,
   event: createAttachmentRejectedEventMock(payloadOverrides, eventOverrides),
 });
-

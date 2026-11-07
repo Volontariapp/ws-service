@@ -8,7 +8,7 @@ import { PostProcessorsModule } from './post-processors/post-processors.module.j
 import { AuthModule } from '@volontariapp/auth';
 
 import { GatewaysModule } from './gateways/gateways.module.js';
-import { LiveModule } from './live/live.module.js';
+import { LiveModule } from './modules/live/live.module.js';
 
 @Module({})
 export class AppModule {

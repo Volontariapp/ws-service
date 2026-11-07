@@ -9,7 +9,7 @@ import { AppConfigService } from './config/app-config.service.js';
 import { loadConfig } from '@volontariapp/config';
 import { CustomConfig } from './config/custom-config.js';
 import { Logger } from '@volontariapp/logger';
-import { LIVE_LOG_MASKING } from './live/live.constants.js';
+import { LIVE_LOG_MASKING } from './modules/live/live.constants.js';
 import { RedisIoAdapter } from './adapters/redis-io.adapter.js';
 
 import { AppDataSource } from './config/data-source.js';

@@ -1,0 +1,29 @@
+import type { MaskingConfig } from '@volontariapp/logger';
+
+/** Rayon de repli (metres) : sous ce seuil, le serveur arrete le partage (D17). */
+export const LIVE_ARRIVAL_FALLBACK_RADIUS_M = 150;
+
+/** Duree de vie (secondes) de la derniere position connue. */
+export const LIVE_POSITION_TTL_S = 120;
+
+/** Cadence minimale (millisecondes) entre deux positions acceptees pour un meme couple. */
+export const LIVE_MIN_UPDATE_INTERVAL_MS = 10_000;
+
+/** Decimales conservees par le serveur (cellule d'environ 110 m). */
+export const LIVE_COORDINATE_DECIMALS = 3;
+
+/** Duree maximale d'une autorisation (millisecondes), reverifiee cote serveur (D18). */
+export const LIVE_GRANT_MAX_DURATION_MS = 8 * 60 * 60 * 1000;
+
+export const LIVE_MAX_LATITUDE = 90;
+export const LIVE_MAX_LONGITUDE = 180;
+
+/** Identifiants acceptes dans les cles Redis : pas de `:` ni d'espace (pas d'injection de cle). */
+export const LIVE_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
+
+/** Cles de journal a masquer (recherche par fragment, insensible a la casse). Jamais `lat` seul. */
+export const LIVE_LOG_MASKING: MaskingConfig = { keys: ['latitude', 'longitude'] };
+
+export const LIVE_GRANT_REPOSITORY = Symbol('LIVE_GRANT_REPOSITORY');
+export const LIVE_POSITION_REPOSITORY = Symbol('LIVE_POSITION_REPOSITORY');
+export const LIVE_CADENCE_REPOSITORY = Symbol('LIVE_CADENCE_REPOSITORY');
