@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 import { AppConfigService } from './config/app-config.service.js';
-import { loadConfig } from '@volontariapp/config';
+import { configureLogger, loadConfig } from '@volontariapp/config';
 import { CustomConfig } from './config/custom-config.js';
 import { Logger } from '@volontariapp/logger';
 import { LIVE_LOG_MASKING } from './modules/live/live.constants.js';
@@ -29,7 +29,7 @@ async function bootstrap() {
   const appConfig = loadConfig(resolveConfigDirectory(), CustomConfig);
   // Les coordonnees du partage de position ne doivent jamais atteindre les journaux : masquage
   // par cle, aussi pour les Logger crees ailleurs sans configuration explicite.
-  Logger.setDefaultConfig({ format: appConfig.logger.format, masking: LIVE_LOG_MASKING });
+  configureLogger(appConfig.logger, { masking: LIVE_LOG_MASKING });
   const logger = new Logger({
     context: 'WS-SERVICE',
     format: appConfig.logger.format,
