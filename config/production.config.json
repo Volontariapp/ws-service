@@ -1,6 +1,6 @@
 {
   "logger": {
-    "level": "warn",
+    "level": "info",
     "format": "json"
   },
   "auth": {
