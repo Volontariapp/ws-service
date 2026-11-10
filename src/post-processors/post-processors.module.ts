@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { RedisProvider } from '@volontariapp/bridge';
-import { NestRedisProvider } from '@volontariapp/bridge-nest';
 import { PostProcessorOptions } from '@volontariapp/post-processors';
 import { UserCreatedPostProcessor } from './users/user-created.post-processor.js';
 import { UserDeletedPostProcessor } from './users/user-deleted.post-processor.js';
@@ -131,15 +130,19 @@ import {
 import { GatewaysModule } from '../gateways/gateways.module.js';
 import { CoreModule } from '../core/core.module.js';
 import { NotificationService } from '../gateways/notification.service.js';
-import { AppConfigService } from '../config/app-config.service.js';
 import { GatherStateService } from '../core/services/gather-state.service.js';
+import { GLOBAL_REDIS_PROVIDER, GlobalRedisModule } from './global-redis.module.js';
+import { PostProcessorRegistry } from './post-processor-registry.service.js';
 
-export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
+export { GLOBAL_REDIS_PROVIDER } from './global-redis.module.js';
 
 @Module({
-  imports: [GatewaysModule, CoreModule],
+  // GlobalRedisModule is imported here only: NestJS destroys this module first, so the
+  // registry awaits every post-processor before the global Redis client disconnects.
+  imports: [GatewaysModule, CoreModule, GlobalRedisModule],
   providers: [
     GatherReaperService,
+    PostProcessorRegistry,
     wsUserCreatedOptionsProvider,
     wsUserDeletedOptionsProvider,
     wsUserSocialCreatedOptionsProvider,
@@ -182,29 +185,30 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
     wsFileRejectedOptionsProvider,
     wsAttachmentRejectedOptionsProvider,
     {
-      provide: GLOBAL_REDIS_PROVIDER,
-      useFactory: (configService: AppConfigService) => {
-        return new NestRedisProvider(configService.globalRedis);
-      },
-      inject: [AppConfigService],
-    },
-    {
       provide: UserCreatedPostProcessor,
       useFactory: async (
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new UserCreatedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          gatherStateService,
+          (launchOptions) =>
+            new UserCreatedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
-      inject: [GLOBAL_REDIS_PROVIDER, WS_USER_CREATED_POST_PROCESSOR_OPTIONS, GatherStateService],
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_USER_CREATED_POST_PROCESSOR_OPTIONS,
+        GatherStateService,
+        PostProcessorRegistry,
+      ],
     },
     {
       provide: UserDeletedPostProcessor,
@@ -212,17 +216,25 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new UserDeletedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          gatherStateService,
+          (launchOptions) =>
+            new UserDeletedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
-      inject: [GLOBAL_REDIS_PROVIDER, WS_USER_DELETED_POST_PROCESSOR_OPTIONS, GatherStateService],
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_USER_DELETED_POST_PROCESSOR_OPTIONS,
+        GatherStateService,
+        PostProcessorRegistry,
+      ],
     },
     {
       provide: UserSocialCreatedPostProcessor,
@@ -231,22 +243,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new UserSocialCreatedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new UserSocialCreatedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_USER_SOCIAL_CREATED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -256,22 +272,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new UserSocialDeletedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new UserSocialDeletedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_USER_SOCIAL_DELETED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -281,22 +301,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new UserSocialDeletedFailedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new UserSocialDeletedFailedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_USER_SOCIAL_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -306,22 +330,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new UserPostDeletedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new UserPostDeletedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_USER_POST_DELETED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -331,22 +359,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new UserPostDeletedFailedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new UserPostDeletedFailedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_USER_POST_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -356,22 +388,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new UserEventDeletedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new UserEventDeletedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_USER_EVENT_DELETED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -381,22 +417,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new UserEventDeletedFailedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new UserEventDeletedFailedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_USER_EVENT_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -406,22 +446,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new UserStorageDeletedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new UserStorageDeletedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_USER_STORAGE_DELETED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -431,22 +475,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new UserStorageDeletedFailedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new UserStorageDeletedFailedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_USER_STORAGE_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -456,22 +504,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new UserRankingDeletedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new UserRankingDeletedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_USER_RANKING_DELETED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -481,22 +533,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new UserRankingDeletedFailedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new UserRankingDeletedFailedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_USER_RANKING_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -506,22 +562,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new SocialEventCreatedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new SocialEventCreatedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_SOCIAL_EVENT_CREATED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -530,17 +590,25 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new EventCreatedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          gatherStateService,
+          (launchOptions) =>
+            new EventCreatedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
-      inject: [GLOBAL_REDIS_PROVIDER, WS_EVENT_CREATED_POST_PROCESSOR_OPTIONS, GatherStateService],
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_EVENT_CREATED_POST_PROCESSOR_OPTIONS,
+        GatherStateService,
+        PostProcessorRegistry,
+      ],
     },
     {
       provide: GeocodedSuccessPostProcessor,
@@ -549,22 +617,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new GeocodedSuccessPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new GeocodedSuccessPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_EVENT_GEOCODED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -574,22 +646,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new GeocodingFailedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new GeocodingFailedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_EVENT_GEOCODING_FAILED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -598,17 +674,25 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new PostCreatedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          gatherStateService,
+          (launchOptions) =>
+            new PostCreatedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
-      inject: [GLOBAL_REDIS_PROVIDER, WS_POST_CREATED_POST_PROCESSOR_OPTIONS, GatherStateService],
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_POST_CREATED_POST_PROCESSOR_OPTIONS,
+        GatherStateService,
+        PostProcessorRegistry,
+      ],
     },
     {
       provide: PostSocialCreatedPostProcessor,
@@ -617,33 +701,47 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new PostSocialCreatedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new PostSocialCreatedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_POST_SOCIAL_CREATED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
       provide: LogPostCreatedPostProcessor,
-      useFactory: async (redisProvider: RedisProvider, options: PostProcessorOptions) => {
+      useFactory: async (
+        redisProvider: RedisProvider,
+        options: PostProcessorOptions,
+        registry: PostProcessorRegistry,
+      ) => {
         await redisProvider.connect();
-        const postProcessor = new LogPostCreatedPostProcessor(redisProvider.getDriver(), options);
-        void postProcessor.start();
-        return postProcessor;
+        return registry.launch(
+          options,
+          (launchOptions) =>
+            new LogPostCreatedPostProcessor(redisProvider.getDriver(), launchOptions),
+        );
       },
-      inject: [GLOBAL_REDIS_PROVIDER, WS_LOG_POST_CREATED_POST_PROCESSOR_OPTIONS],
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_LOG_POST_CREATED_POST_PROCESSOR_OPTIONS,
+        PostProcessorRegistry,
+      ],
     },
     {
       provide: PostCreationFailedPostProcessor,
@@ -651,20 +749,24 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         notificationService: NotificationService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new PostCreationFailedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
+          (launchOptions) =>
+            new PostCreationFailedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_POST_CREATION_FAILED_POST_PROCESSOR_OPTIONS,
         NotificationService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -673,17 +775,25 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new PostDeletedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          gatherStateService,
+          (launchOptions) =>
+            new PostDeletedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
-      inject: [GLOBAL_REDIS_PROVIDER, WS_POST_DELETED_POST_PROCESSOR_OPTIONS, GatherStateService],
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_POST_DELETED_POST_PROCESSOR_OPTIONS,
+        GatherStateService,
+        PostProcessorRegistry,
+      ],
     },
     {
       provide: PostSocialDeletedPostProcessor,
@@ -692,22 +802,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new PostSocialDeletedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new PostSocialDeletedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_POST_SOCIAL_DELETED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -716,20 +830,24 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         notificationService: NotificationService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new PostDeletionFailedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
+          (launchOptions) =>
+            new PostDeletionFailedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_POST_DELETION_FAILED_POST_PROCESSOR_OPTIONS,
         NotificationService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -738,20 +856,24 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         notificationService: NotificationService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new CommentCreatedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
+          (launchOptions) =>
+            new CommentCreatedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_COMMENT_CREATED_POST_PROCESSOR_OPTIONS,
         NotificationService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -760,20 +882,24 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         notificationService: NotificationService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new CommentDeletedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
+          (launchOptions) =>
+            new CommentDeletedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_COMMENT_DELETED_POST_PROCESSOR_OPTIONS,
         NotificationService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -782,17 +908,25 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         notificationService: NotificationService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new PostLikedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
+          (launchOptions) =>
+            new PostLikedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
-      inject: [GLOBAL_REDIS_PROVIDER, WS_POST_LIKED_POST_PROCESSOR_OPTIONS, NotificationService],
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_POST_LIKED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+        PostProcessorRegistry,
+      ],
     },
     {
       provide: PostUnlikedPostProcessor,
@@ -800,17 +934,25 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         notificationService: NotificationService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new PostUnlikedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
+          (launchOptions) =>
+            new PostUnlikedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
-      inject: [GLOBAL_REDIS_PROVIDER, WS_POST_UNLIKED_POST_PROCESSOR_OPTIONS, NotificationService],
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_POST_UNLIKED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+        PostProcessorRegistry,
+      ],
     },
     {
       provide: JobOutboxSuccessPostProcessor,
@@ -818,20 +960,24 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         notificationService: NotificationService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new JobOutboxSuccessPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
+          (launchOptions) =>
+            new JobOutboxSuccessPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_JOB_OUTBOX_SUCCESS_POST_PROCESSOR_OPTIONS,
         NotificationService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -840,20 +986,24 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         notificationService: NotificationService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new JobOutboxFailedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
+          (launchOptions) =>
+            new JobOutboxFailedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_JOB_OUTBOX_FAILED_POST_PROCESSOR_OPTIONS,
         NotificationService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -862,17 +1012,25 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new EventDeletedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          gatherStateService,
+          (launchOptions) =>
+            new EventDeletedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
-      inject: [GLOBAL_REDIS_PROVIDER, WS_EVENT_DELETED_POST_PROCESSOR_OPTIONS, GatherStateService],
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_EVENT_DELETED_POST_PROCESSOR_OPTIONS,
+        GatherStateService,
+        PostProcessorRegistry,
+      ],
     },
     {
       provide: SocialEventDeletedSuccessPostProcessor,
@@ -881,22 +1039,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new SocialEventDeletedSuccessPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new SocialEventDeletedSuccessPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_SOCIAL_EVENT_DELETED_SUCCESS_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -906,22 +1068,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new SocialEventDeletedFailedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new SocialEventDeletedFailedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_SOCIAL_EVENT_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -931,22 +1097,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new PostEventDeletedSuccessPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new PostEventDeletedSuccessPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_POST_EVENT_DELETED_SUCCESS_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -956,22 +1126,26 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         options: PostProcessorOptions,
         notificationService: NotificationService,
         gatherStateService: GatherStateService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new PostEventDeletedFailedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
-          gatherStateService,
+          (launchOptions) =>
+            new PostEventDeletedFailedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+              gatherStateService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_POST_EVENT_DELETED_FAILED_POST_PROCESSOR_OPTIONS,
         NotificationService,
         GatherStateService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -980,20 +1154,24 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         notificationService: NotificationService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new EventAttendanceSetPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
+          (launchOptions) =>
+            new EventAttendanceSetPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_EVENT_ATTENDANCE_SET_POST_PROCESSOR_OPTIONS,
         NotificationService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -1002,20 +1180,24 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         notificationService: NotificationService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new UserBadgeAwardedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
+          (launchOptions) =>
+            new UserBadgeAwardedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_USER_BADGE_AWARDED_POST_PROCESSOR_OPTIONS,
         NotificationService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -1024,20 +1206,24 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         notificationService: NotificationService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new UserImpactScoreCreditedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
+          (launchOptions) =>
+            new UserImpactScoreCreditedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_USER_IMPACT_SCORE_CREDITED_POST_PROCESSOR_OPTIONS,
         NotificationService,
+        PostProcessorRegistry,
       ],
     },
     {
@@ -1046,17 +1232,25 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         notificationService: NotificationService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new FileScannedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
+          (launchOptions) =>
+            new FileScannedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
-      inject: [GLOBAL_REDIS_PROVIDER, WS_FILE_SCANNED_POST_PROCESSOR_OPTIONS, NotificationService],
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_FILE_SCANNED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+        PostProcessorRegistry,
+      ],
     },
     {
       provide: FileRejectedPostProcessor,
@@ -1064,17 +1258,25 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         notificationService: NotificationService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new FileRejectedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
+          (launchOptions) =>
+            new FileRejectedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
-      inject: [GLOBAL_REDIS_PROVIDER, WS_FILE_REJECTED_POST_PROCESSOR_OPTIONS, NotificationService],
+      inject: [
+        GLOBAL_REDIS_PROVIDER,
+        WS_FILE_REJECTED_POST_PROCESSOR_OPTIONS,
+        NotificationService,
+        PostProcessorRegistry,
+      ],
     },
     {
       provide: AttachmentRejectedPostProcessor,
@@ -1082,20 +1284,24 @@ export const GLOBAL_REDIS_PROVIDER = 'GLOBAL_REDIS_PROVIDER';
         redisProvider: RedisProvider,
         options: PostProcessorOptions,
         notificationService: NotificationService,
+        registry: PostProcessorRegistry,
       ) => {
         await redisProvider.connect();
-        const postProcessor = new AttachmentRejectedPostProcessor(
-          redisProvider.getDriver(),
+        return registry.launch(
           options,
-          notificationService,
+          (launchOptions) =>
+            new AttachmentRejectedPostProcessor(
+              redisProvider.getDriver(),
+              launchOptions,
+              notificationService,
+            ),
         );
-        void postProcessor.start();
-        return postProcessor;
       },
       inject: [
         GLOBAL_REDIS_PROVIDER,
         WS_ATTACHMENT_REJECTED_POST_PROCESSOR_OPTIONS,
         NotificationService,
+        PostProcessorRegistry,
       ],
     },
   ],
